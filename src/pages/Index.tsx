@@ -20,7 +20,7 @@ const Index = () => {
         <div className="relative z-10 text-center animate-fade-in">
           <div className="mb-8">
             <h1 className="text-6xl md:text-8xl font-bold tracking-tight">
-              <span className="gradient-text text-white">Conectados</span>
+              <span className="gradient-text text-white bg-white">Conectados</span>
             </h1>
           </div>
           
