@@ -2,19 +2,17 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Calendar, Heart, Instagram, MessageCircle, Images } from 'lucide-react';
 import { useSettings } from '@/hooks/useSettings';
-
 const Index = () => {
-  const { data: settings } = useSettings();
-
+  const {
+    data: settings
+  } = useSettings();
   const openWhatsApp = () => {
     if (settings?.whatsapp_number) {
       const message = encodeURIComponent(settings.whatsapp_message || '');
       window.open(`https://wa.me/${settings.whatsapp_number}?text=${message}`, '_blank');
     }
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative flex min-h-screen flex-col items-center justify-center px-4 py-20">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
@@ -22,7 +20,7 @@ const Index = () => {
         <div className="relative z-10 text-center animate-fade-in">
           <div className="mb-8">
             <h1 className="text-6xl md:text-8xl font-bold tracking-tight">
-              <span className="gradient-text">Conectados</span>
+              <span className="gradient-text text-white">Conectados</span>
             </h1>
           </div>
           
@@ -61,35 +59,25 @@ const Index = () => {
           <h2 className="mb-8 text-2xl font-semibold">Conecte-se conosco</h2>
           
           <div className="flex flex-wrap items-center justify-center gap-4">
-            {settings?.instagram_url && (
-              <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer">
+            {settings?.instagram_url && <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" size="lg" className="gap-2">
                   <Instagram className="h-5 w-5" />
                   Instagram
                 </Button>
-              </a>
-            )}
+              </a>}
             
-            {settings?.whatsapp_number && (
-              <Button variant="outline" size="lg" className="gap-2" onClick={openWhatsApp}>
+            {settings?.whatsapp_number && <Button variant="outline" size="lg" className="gap-2" onClick={openWhatsApp}>
                 <MessageCircle className="h-5 w-5" />
                 WhatsApp
-              </Button>
-            )}
+              </Button>}
           </div>
         </div>
       </section>
 
       {/* WhatsApp Floating Button */}
-      {settings?.whatsapp_number && (
-        <button
-          onClick={openWhatsApp}
-          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition-transform hover:scale-110 glow-effect"
-          aria-label="Falar no WhatsApp"
-        >
+      {settings?.whatsapp_number && <button onClick={openWhatsApp} className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition-transform hover:scale-110 glow-effect" aria-label="Falar no WhatsApp">
           <MessageCircle className="h-6 w-6" />
-        </button>
-      )}
+        </button>}
 
       {/* Footer */}
       <footer className="border-t border-border px-4 py-8">
@@ -100,8 +88,6 @@ const Index = () => {
           </Link>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
