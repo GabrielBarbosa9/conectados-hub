@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,46 +10,72 @@ import { toast } from 'sonner';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { signIn, user, isAdmin } = useAuth();
+  const { signIn, signUp, user, isAdmin, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
 
   // Redirect if already logged in as admin
-  if (user && isAdmin) {
-    navigate('/admin/dashboard', { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (!loading && user && isAdmin) {
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [user, isAdmin, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsSubmitting(true);
 
     try {
-      const { error } = await signIn(email, password);
-      
-      if (error) {
-        toast.error('E-mail ou senha inválidos');
-        return;
+      if (isSignUp) {
+        const { error } = await signUp(email, password);
+        if (error) {
+          if (error.message.includes('already registered')) {
+            toast.error('Este e-mail já está cadastrado. Tente fazer login.');
+          } else {
+            toast.error('Erro ao criar conta: ' + error.message);
+          }
+          return;
+        }
+        toast.success('Conta criada! Fazendo login...');
+        // After signup, wait for auth state and role check
+        setTimeout(() => {
+          navigate('/admin/dashboard');
+        }, 1000);
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) {
+          toast.error('E-mail ou senha inválidos');
+          return;
+        }
+        // Wait for the auth state to update
+        setTimeout(() => {
+          navigate('/admin/dashboard');
+        }, 500);
       }
-
-      // Wait a bit for the auth state to update
-      setTimeout(() => {
-        navigate('/admin/dashboard');
-      }, 500);
     } catch (error) {
       toast.error('Erro ao fazer login');
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md glass-card animate-scale-in">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">
-            <span className="gradient-text">Conectados</span>
+            <span className="logo-text">Conectados</span>
           </CardTitle>
           <CardDescription>Área Administrativa</CardDescription>
         </CardHeader>
@@ -68,18 +95,39 @@ const AdminLogin = () => {
             
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Entrando...' : 'Entrar'}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (isSignUp ? 'Criando conta...' : 'Entrando...') : (isSignUp ? 'Criar Conta' : 'Entrar')}
             </Button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {isSignUp ? 'Já tem conta? Faça login' : 'Primeiro acesso? Criar conta'}
+              </button>
+            </div>
           </form>
         </CardContent>
       </Card>

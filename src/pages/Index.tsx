@@ -20,7 +20,7 @@ const Index = () => {
         <div className="relative z-10 text-center animate-fade-in">
           <div className="mb-8">
             <h1 className="text-6xl md:text-8xl font-bold tracking-tight">
-              <span className="gradient-text text-white bg-white">Conectados</span>
+              <span className="logo-text">Conectados</span>
             </h1>
           </div>
           
@@ -30,7 +30,7 @@ const Index = () => {
           
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link to="/eventos">
-              <Button size="lg" className="gap-2 glow-effect">
+              <Button size="lg" className="gap-2 subtle-glow">
                 <Calendar className="h-5 w-5" />
                 Eventos
               </Button>
@@ -75,7 +75,7 @@ const Index = () => {
       </section>
 
       {/* WhatsApp Floating Button */}
-      {settings?.whatsapp_number && <button onClick={openWhatsApp} className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition-transform hover:scale-110 glow-effect" aria-label="Falar no WhatsApp">
+      {settings?.whatsapp_number && <button onClick={openWhatsApp} className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition-transform hover:scale-110" aria-label="Falar no WhatsApp">
           <MessageCircle className="h-6 w-6" />
         </button>}
 

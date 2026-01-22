@@ -50,7 +50,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
         <button onClick={() => setSidebarOpen(true)}>
           <Menu className="h-6 w-6" />
         </button>
-        <span className="font-semibold gradient-text">Conectados</span>
+        <span className="font-bold logo-text">Conectados</span>
         <div className="w-6" />
       </header>
 
@@ -68,7 +68,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex h-16 items-center justify-between px-6">
-          <span className="text-lg font-semibold gradient-text">Conectados</span>
+          <span className="text-lg font-bold logo-text">Conectados</span>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden">
             <X className="h-5 w-5" />
           </button>
