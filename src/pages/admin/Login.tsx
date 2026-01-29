@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import logoConectados from '@/assets/logo-conectados.png';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -74,10 +75,11 @@ const AdminLogin = () => {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md glass-card animate-scale-in">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">
-            <span className="logo-text">Conectados</span>
-          </CardTitle>
-          <CardDescription>Área Administrativa</CardDescription>
+          <div className="flex justify-center mb-4">
+            <img src={logoConectados} alt="Conectados" className="h-16" />
+          </div>
+          <CardTitle className="text-2xl">Área Administrativa</CardTitle>
+          <CardDescription>Faça login para continuar</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
