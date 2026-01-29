@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import logoConectados from '@/assets/logo-conectados.png';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -50,7 +51,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
         <button onClick={() => setSidebarOpen(true)}>
           <Menu className="h-6 w-6" />
         </button>
-        <span className="font-bold logo-text">Conectados</span>
+        <img src={logoConectados} alt="Conectados" className="h-8" />
         <div className="w-6" />
       </header>
 
@@ -68,7 +69,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex h-16 items-center justify-between px-6">
-          <span className="text-lg font-bold logo-text">Conectados</span>
+          <img src={logoConectados} alt="Conectados" className="h-8" />
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden">
             <X className="h-5 w-5" />
           </button>

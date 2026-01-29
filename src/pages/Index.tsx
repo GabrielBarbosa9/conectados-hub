@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Calendar, Heart, Instagram, MessageCircle, Images } from 'lucide-react';
 import { useSettings } from '@/hooks/useSettings';
+import logoConectados from '@/assets/logo-conectados.png';
+
 const Index = () => {
   const {
     data: settings
@@ -19,9 +21,11 @@ const Index = () => {
         
         <div className="relative z-10 text-center animate-fade-in">
           <div className="mb-8">
-            <h1 className="text-6xl md:text-8xl font-bold tracking-tight">
-              <span className="logo-text">Conectados</span>
-            </h1>
+            <img 
+              src={logoConectados} 
+              alt="Conectados" 
+              className="h-24 md:h-32 mx-auto"
+            />
           </div>
           
           <p className="mb-12 max-w-2xl text-lg md:text-xl text-muted-foreground">
