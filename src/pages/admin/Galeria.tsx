@@ -5,8 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Trash2, Upload } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Plus, Trash2, Upload, CheckCircle2, Loader2 } from 'lucide-react';
 import { useGalleryAlbums, useGalleryPhotos, useCreateAlbum, useDeleteAlbum, useUploadPhoto, useDeletePhoto } from '@/hooks/useGallery';
+
+interface UploadProgress {
+  total: number;
+  completed: number;
+  isUploading: boolean;
+}
 
 const Galeria = () => {
   const { data: albums, isLoading: loadingAlbums } = useGalleryAlbums();
@@ -19,6 +26,11 @@ const Galeria = () => {
   const [isAlbumOpen, setIsAlbumOpen] = useState(false);
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
   const [albumTitle, setAlbumTitle] = useState('');
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({
+    total: 0,
+    completed: 0,
+    isUploading: false,
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreateAlbum = async (e: React.FormEvent) => {
@@ -44,14 +56,38 @@ const Galeria = () => {
     const files = e.target.files;
     if (!files || !selectedAlbumId) return;
 
-    for (const file of Array.from(files)) {
-      await uploadPhoto.mutateAsync({ file, albumId: selectedAlbumId });
+    const fileArray = Array.from(files);
+    setUploadProgress({
+      total: fileArray.length,
+      completed: 0,
+      isUploading: true,
+    });
+
+    for (let i = 0; i < fileArray.length; i++) {
+      try {
+        await uploadPhoto.mutateAsync({ file: fileArray[i], albumId: selectedAlbumId });
+        setUploadProgress(prev => ({
+          ...prev,
+          completed: i + 1,
+        }));
+      } catch (error) {
+        console.error('Erro ao enviar foto:', error);
+      }
     }
+
+    // Reset after a short delay to show completion
+    setTimeout(() => {
+      setUploadProgress({ total: 0, completed: 0, isUploading: false });
+    }, 2000);
     
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
+
+  const progressPercentage = uploadProgress.total > 0 
+    ? (uploadProgress.completed / uploadProgress.total) * 100 
+    : 0;
 
   const handleDeletePhoto = async (photoId: string, photoUrl: string) => {
     if (confirm('Tem certeza que deseja excluir esta foto?')) {
@@ -153,15 +189,44 @@ const Galeria = () => {
                     variant="outline"
                     className="gap-2"
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadPhoto.isPending}
+                    disabled={uploadProgress.isUploading}
                   >
                     <Upload className="h-4 w-4" />
-                    {uploadPhoto.isPending ? 'Enviando...' : 'Upload'}
+                    Upload
                   </Button>
                 </>
               )}
             </CardHeader>
             <CardContent>
+              {/* Upload Progress Indicator */}
+              {uploadProgress.isUploading && (
+                <div className="mb-6 rounded-lg border border-border bg-muted/50 p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {uploadProgress.completed === uploadProgress.total ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      )}
+                      <span className="font-medium">
+                        {uploadProgress.completed === uploadProgress.total
+                          ? 'Upload concluído!'
+                          : 'Enviando fotos...'}
+                      </span>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {uploadProgress.completed} de {uploadProgress.total}
+                    </span>
+                  </div>
+                  <Progress value={progressPercentage} className="h-2" />
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {uploadProgress.total - uploadProgress.completed > 0
+                      ? `${uploadProgress.total - uploadProgress.completed} foto(s) restante(s)`
+                      : 'Todas as fotos foram enviadas!'}
+                  </p>
+                </div>
+              )}
+
               {!selectedAlbumId ? (
                 <p className="text-center text-muted-foreground py-8">
                   Selecione um álbum para ver e gerenciar as fotos.
@@ -170,7 +235,7 @@ const Galeria = () => {
                 <div className="flex justify-center py-8">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                 </div>
-              ) : albumPhotos.length === 0 ? (
+              ) : albumPhotos.length === 0 && !uploadProgress.isUploading ? (
                 <p className="text-center text-muted-foreground py-8">
                   Nenhuma foto neste álbum. Faça upload para adicionar.
                 </p>
