@@ -57,6 +57,52 @@ export const useGalleryPhotos = (albumId?: string) => {
   });
 };
 
+export const useRecentPhotos = (limit: number = 6) => {
+  return useQuery({
+    queryKey: ['recent-photos', limit],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('gallery_photos')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      
+      if (error) throw error;
+      return data as GalleryPhoto[];
+    },
+  });
+};
+
+export const useAlbumWithPhotoCount = () => {
+  return useQuery({
+    queryKey: ['albums-with-count'],
+    queryFn: async () => {
+      const { data: albums, error: albumsError } = await supabase
+        .from('gallery_albums')
+        .select('*')
+        .order('display_order', { ascending: true });
+      
+      if (albumsError) throw albumsError;
+      
+      const { data: photos, error: photosError } = await supabase
+        .from('gallery_photos')
+        .select('album_id');
+      
+      if (photosError) throw photosError;
+      
+      const countMap = photos.reduce((acc, photo) => {
+        acc[photo.album_id] = (acc[photo.album_id] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      return (albums as GalleryAlbum[]).map(album => ({
+        ...album,
+        photoCount: countMap[album.id] || 0,
+      }));
+    },
+  });
+};
+
 export const useCreateAlbum = () => {
   const queryClient = useQueryClient();
   

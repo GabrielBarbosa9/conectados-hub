@@ -87,6 +87,9 @@
     --sidebar-accent-foreground: 0 0% 4%;
     --sidebar-border: 0 0% 90%;
     --sidebar-ring: 0 0% 10%;
+
+    --glass-background: hsl(0, 0%, 100%, 0.9);
+    --glass-border: hsl(0, 0%, 85%, 0.5);
   }
 }
 
