@@ -11,12 +11,11 @@ import logoConectados from '@/assets/logo-conectados.png';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { signIn, signUp, user, isAdmin, loading } = useAuth();
+  const { signIn, user, isAdmin, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
 
   // Redirect if already logged in as admin
   useEffect(() => {
@@ -30,32 +29,15 @@ const AdminLogin = () => {
     setIsSubmitting(true);
 
     try {
-      if (isSignUp) {
-        const { error } = await signUp(email, password);
-        if (error) {
-          if (error.message.includes('already registered')) {
-            toast.error('Este e-mail já está cadastrado. Tente fazer login.');
-          } else {
-            toast.error('Erro ao criar conta: ' + error.message);
-          }
-          return;
-        }
-        toast.success('Conta criada! Fazendo login...');
-        // After signup, wait for auth state and role check
-        setTimeout(() => {
-          navigate('/admin/dashboard');
-        }, 1000);
-      } else {
-        const { error } = await signIn(email, password);
-        if (error) {
-          toast.error('E-mail ou senha inválidos');
-          return;
-        }
-        // Wait for the auth state to update
-        setTimeout(() => {
-          navigate('/admin/dashboard');
-        }, 500);
+      const { error } = await signIn(email, password);
+      if (error) {
+        toast.error('E-mail ou senha inválidos');
+        return;
       }
+      // Wait for the auth state to update
+      setTimeout(() => {
+        navigate('/admin/dashboard');
+      }, 500);
     } catch (error) {
       toast.error('Erro ao fazer login');
     } finally {
@@ -118,18 +100,8 @@ const AdminLogin = () => {
             </div>
             
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? (isSignUp ? 'Criando conta...' : 'Entrando...') : (isSignUp ? 'Criar Conta' : 'Entrar')}
+              {isSubmitting ? 'Entrando...' : 'Entrar'}
             </Button>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {isSignUp ? 'Já tem conta? Faça login' : 'Primeiro acesso? Criar conta'}
-              </button>
-            </div>
           </form>
         </CardContent>
       </Card>

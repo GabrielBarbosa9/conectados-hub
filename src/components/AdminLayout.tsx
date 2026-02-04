@@ -17,6 +17,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import logoConectados from '@/assets/logo-conectados.png';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -52,7 +53,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
           <Menu className="h-6 w-6" />
         </button>
         <img src={logoConectados} alt="Conectados" className="h-8" />
-        <div className="w-6" />
+        <ThemeToggle />
       </header>
 
       {/* Mobile Sidebar Overlay */}
@@ -98,14 +99,17 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
         </nav>
         
         <div className="absolute bottom-0 left-0 right-0 border-t border-sidebar-border p-4">
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start gap-3" 
-            onClick={handleSignOut}
-          >
-            <LogOut className="h-4 w-4" />
-            Sair
-          </Button>
+          <div className="flex items-center justify-between">
+            <Button 
+              variant="ghost" 
+              className="flex-1 justify-start gap-3" 
+              onClick={handleSignOut}
+            >
+              <LogOut className="h-4 w-4" />
+              Sair
+            </Button>
+            <ThemeToggle />
+          </div>
         </div>
       </aside>
 
