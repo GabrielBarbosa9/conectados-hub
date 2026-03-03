@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent, Event } from '@/hooks/useEvents';
 import { format } from 'date-fns';
+import EventCustomFieldsManager from '@/components/EventCustomFieldsManager';
 
 const Eventos = () => {
   const { data: events, isLoading } = useEvents();
@@ -27,6 +29,10 @@ const Eventos = () => {
     location: '',
     max_capacity: '',
     is_active: true,
+    price: '',
+    payment_method: 'free',
+    pix_key: '',
+    n8n_webhook_url: '',
   });
 
   const resetForm = () => {
@@ -38,6 +44,10 @@ const Eventos = () => {
       location: '',
       max_capacity: '',
       is_active: true,
+      price: '',
+      payment_method: 'free',
+      pix_key: '',
+      n8n_webhook_url: '',
     });
     setEditingEvent(null);
   };
@@ -52,6 +62,10 @@ const Eventos = () => {
       location: event.location || '',
       max_capacity: event.max_capacity?.toString() || '',
       is_active: event.is_active,
+      price: event.price?.toString() || '',
+      payment_method: event.payment_method || 'free',
+      pix_key: event.pix_key || '',
+      n8n_webhook_url: event.n8n_webhook_url || '',
     });
     setIsOpen(true);
   };
@@ -67,6 +81,10 @@ const Eventos = () => {
       location: formData.location || undefined,
       max_capacity: formData.max_capacity ? parseInt(formData.max_capacity) : undefined,
       is_active: formData.is_active,
+      price: formData.price ? parseFloat(formData.price) : null,
+      payment_method: formData.payment_method,
+      pix_key: formData.pix_key || null,
+      n8n_webhook_url: formData.n8n_webhook_url || null,
     };
 
     if (editingEvent) {
@@ -85,6 +103,14 @@ const Eventos = () => {
     }
   };
 
+  const paymentLabel = (method: string | null) => {
+    switch (method) {
+      case 'pix': return 'PIX';
+      case 'pix_recorrente': return 'PIX Recorrente';
+      default: return 'Gratuito';
+    }
+  };
+
   return (
     <AdminLayout title="Eventos">
       <div className="mb-6">
@@ -95,7 +121,7 @@ const Eventos = () => {
               Novo Evento
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>{editingEvent ? 'Editar Evento' : 'Novo Evento'}</DialogTitle>
             </DialogHeader>
@@ -130,7 +156,6 @@ const Eventos = () => {
                     onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
                   />
                 </div>
-                
                 <div className="space-y-2">
                   <Label htmlFor="event_time">Horário</Label>
                   <Input
@@ -160,6 +185,65 @@ const Eventos = () => {
                   onChange={(e) => setFormData({ ...formData, max_capacity: e.target.value })}
                 />
               </div>
+
+              {/* Payment Section */}
+              <div className="space-y-3 rounded-md border p-3">
+                <Label className="text-sm font-semibold">Pagamento</Label>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="payment_method">Forma de Pagamento</Label>
+                  <Select value={formData.payment_method} onValueChange={(v) => setFormData({ ...formData, payment_method: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="free">Gratuito</SelectItem>
+                      <SelectItem value="pix">PIX (pagamento único)</SelectItem>
+                      <SelectItem value="pix_recorrente">PIX Recorrente (via N8N)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.payment_method !== 'free' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Valor (R$) *</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        required
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="pix_key">Chave PIX do Evento</Label>
+                      <Input
+                        id="pix_key"
+                        value={formData.pix_key}
+                        onChange={(e) => setFormData({ ...formData, pix_key: e.target.value })}
+                        placeholder="Deixe vazio para usar a chave global"
+                      />
+                      <p className="text-xs text-muted-foreground">Se vazio, usa a chave PIX das configurações gerais.</p>
+                    </div>
+                  </>
+                )}
+
+                {formData.payment_method === 'pix_recorrente' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="n8n_webhook_url">URL Webhook N8N</Label>
+                    <Input
+                      id="n8n_webhook_url"
+                      value={formData.n8n_webhook_url}
+                      onChange={(e) => setFormData({ ...formData, n8n_webhook_url: e.target.value })}
+                      placeholder="https://n8n.example.com/webhook/..."
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      O webhook será chamado após a inscrição para iniciar cobranças mensais via WhatsApp.
+                    </p>
+                  </div>
+                )}
+              </div>
               
               <div className="flex items-center gap-2">
                 <Switch
@@ -169,6 +253,13 @@ const Eventos = () => {
                 />
                 <Label htmlFor="is_active">Evento ativo</Label>
               </div>
+
+              {/* Custom Fields - only show when editing */}
+              {editingEvent && (
+                <div className="rounded-md border p-3">
+                  <EventCustomFieldsManager eventId={editingEvent.id} />
+                </div>
+              )}
               
               <Button type="submit" className="w-full">
                 {editingEvent ? 'Salvar Alterações' : 'Criar Evento'}
@@ -194,6 +285,9 @@ const Eventos = () => {
                   <p className="text-sm text-muted-foreground">
                     {format(new Date(event.event_date), 'dd/MM/yyyy')}
                     {event.event_time && ` às ${event.event_time.slice(0, 5)}`}
+                    {' · '}
+                    {paymentLabel(event.payment_method)}
+                    {event.price ? ` · R$ ${Number(event.price).toFixed(2)}` : ''}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

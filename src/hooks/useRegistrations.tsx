@@ -116,6 +116,31 @@ export const useCheckIn = () => {
   });
 };
 
+export const useConfirmPayment = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ registrationId, status }: { registrationId: string; status: string }) => {
+      const { data, error } = await supabase
+        .from('registrations')
+        .update({ payment_status: status })
+        .eq('id', registrationId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['registrations'] });
+      toast.success('Status de pagamento atualizado!');
+    },
+    onError: () => {
+      toast.error('Erro ao atualizar pagamento');
+    },
+  });
+};
+
 export const useDeleteRegistration = () => {
   const queryClient = useQueryClient();
   
