@@ -13,6 +13,8 @@ export interface Registration {
   custom_fields: Json | null;
   checked_in: boolean;
   checked_in_at: string | null;
+  payment_status: string;
+  payment_proof_url: string | null;
   created_at: string;
 }
 
