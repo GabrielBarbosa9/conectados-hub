@@ -25,6 +25,8 @@ export interface CreateRegistrationData {
   email?: string;
   age?: number;
   custom_fields?: Json;
+  payment_status?: string;
+  payment_proof_url?: string;
 }
 
 export const useRegistrations = (eventId?: string) => {

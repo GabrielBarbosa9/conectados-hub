@@ -38,6 +38,10 @@ export interface CreateEventData {
   location?: string;
   max_capacity?: number;
   is_active?: boolean;
+  price?: number;
+  payment_method?: string;
+  pix_key?: string;
+  n8n_webhook_url?: string;
 }
 
 export const useEvents = (activeOnly = false) => {
