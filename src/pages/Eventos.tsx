@@ -94,7 +94,7 @@ const Eventos = () => {
     paymentProofUrl: '',
   });
 
-  const globalPixKey = settings?.find(s => s.key === 'pix_key')?.value;
+  const globalPixKey = settings?.pix_key;
   const eventPixKey = selectedEvent?.pix_key || globalPixKey || '';
   const isPaid = selectedEvent?.payment_method === 'pix' || selectedEvent?.payment_method === 'pix_recorrente';
 
