@@ -1,138 +1,91 @@
 
-## Plano de Atualizações - Plataforma Conectados
 
-### 1. Galeria de Fotos Dividida em Álbuns
+## Plano: Pagamento PIX na Inscrição + Gestão de Campos e Valores pelo Admin
 
-**Arquivo:** `src/pages/Galeria.tsx`
+### 1. Migração de Banco de Dados
 
-**Situação atual:**
-- A galeria pública exibe todas as fotos em um único grid, sem organização por álbuns
-- Os álbuns já existem no banco de dados (Retiro 2026, Level Up 2025)
+Adicionar colunas na tabela `events`:
 
-**Alterações:**
-- Adicionar estado para selecionar álbuns
-- Exibir lista de álbuns como cards com foto de capa
-- Ao clicar em um álbum, mostrar apenas as fotos daquele álbum
-- Adicionar navegação para voltar à lista de álbuns
-- Mostrar o título e contagem de fotos de cada álbum
+- `price` (numeric, nullable, default null) - valor do evento
+- `payment_method` (text, nullable, default null) - ex: 'pix', 'free', 'pix_recorrente'
+- `pix_key` (text, nullable) - chave PIX específica do evento (ou usa a global do settings)
+- `n8n_webhook_url` (text, nullable) - URL do webhook N8N para cobrança recorrente via WhatsApp
 
-**Novo hook necessário em `src/hooks/useGallery.tsx`:**
-- Criar `useGalleryPhotosWithAlbum` para buscar fotos com informações do álbum
-- Ou criar query que retorna fotos agrupadas por álbum
+Adicionar colunas na tabela `registrations`:
 
----
+- `payment_status` (text, default 'pending') - 'pending', 'confirmed', 'free'
+- `payment_proof_url` (text, nullable) - URL do comprovante enviado
 
-### 2. Fotos Recentes na Página Inicial
+### 2. Admin: Edição de Valores e Pagamento no Evento
 
-**Arquivo:** `src/pages/Index.tsx`
+**Arquivo:** `src/pages/admin/Eventos.tsx`
 
-**Situação atual:**
-- Página inicial possui apenas logo, texto descritivo, botões e seção de redes sociais
-- Existem 3 fotos no banco de dados
+Adicionar ao formulário de criação/edição de evento:
+- Campo "Valor" (numérico, R$)
+- Select "Forma de Pagamento": Gratuito / PIX / PIX Recorrente
+- Campo "Chave PIX do Evento" (opcional, usa a global se vazio)
+- Campo "URL Webhook N8N" (aparece apenas quando "PIX Recorrente" selecionado)
+- Texto explicativo sobre integração N8N
 
-**Alterações:**
-- Adicionar nova seção "Momentos" ou "Galeria" antes da seção de redes sociais
-- Buscar as 4-6 fotos mais recentes do banco usando `useGalleryPhotos`
-- Exibir em grid estilizado com efeito de hover
-- Adicionar link "Ver todas" que redireciona para `/galeria`
-- Design: cards com aspect-ratio 1:1, bordas arredondadas, efeito de scale no hover
+Atualizar hooks `useCreateEvent` e `useUpdateEvent` para incluir os novos campos.
 
-**Novo hook em `src/hooks/useGallery.tsx`:**
-- `useRecentPhotos(limit: number)` - busca as N fotos mais recentes ordenadas por `created_at DESC`
+### 3. Admin: Gestão de Campos Personalizados do Evento
 
----
+**Novo componente:** `src/components/EventCustomFieldsManager.tsx`
 
-### 3. Adicionar Modo Claro no Sistema
+Interface no admin para gerenciar campos de inscrição por evento:
+- Lista de campos atuais com nome, tipo, obrigatoriedade
+- Botão "Adicionar Campo" com dialog para: nome do campo, tipo (texto/número/select), obrigatório (sim/não), opções (para select)
+- Botão para excluir campo existente
+- Reordenação por drag ou setas
 
-**Arquivos afetados:**
+Usar os hooks existentes `useCreateCustomField` e `useDeleteCustomField` de `useEvents.tsx`.
 
-**`src/App.tsx`:**
-- Importar `ThemeProvider` de `next-themes`
-- Envolver toda a aplicação com `<ThemeProvider attribute="class" defaultTheme="dark">`
+Integrar este componente dentro do dialog de edição de evento em `admin/Eventos.tsx`, como uma aba ou seção separada.
 
-**`src/components/AdminLayout.tsx`:**
-- Adicionar botão de toggle de tema (Sol/Lua) no header
-- Usar hook `useTheme` de `next-themes`
+### 4. Formulário de Inscrição Pública com PIX
 
-**`src/pages/Index.tsx`:**
-- Adicionar botão de toggle no header ou footer para visitantes
+**Arquivo:** `src/pages/Eventos.tsx`
 
-**`src/index.css`:**
-- As variáveis para modo claro (`.light`) já estão definidas
-- Adicionar variáveis de glass para modo claro:
-```css
-.light {
-  --glass-background: hsl(0, 0%, 100%, 0.9);
-  --glass-border: hsl(0, 0%, 85%, 0.5);
-}
-```
+Alterações no formulário de inscrição:
+- Se o evento tem `price > 0` e `payment_method = 'pix'`: exibir valor, chave PIX (do evento ou global), botão copiar, e campo para upload do comprovante
+- Se `payment_method = 'free'` ou `price` é null: fluxo atual sem pagamento
+- Se `payment_method = 'pix_recorrente'`: exibir informação de que será cobrado mensalmente via WhatsApp após N8N processar
+- Salvar `payment_status` como 'pending' (pix) ou 'free' (gratuito) na inscrição
 
-**Novo componente sugerido:** `src/components/ThemeToggle.tsx`
-- Botão reutilizável com ícones Sol/Lua
-- Usa `useTheme()` para alternar entre dark/light
+### 5. Admin: Visualização de Status de Pagamento
+
+**Arquivo:** `src/pages/admin/Inscricoes.tsx`
+
+- Adicionar coluna "Pagamento" na tabela de inscritos
+- Badge colorido: Pendente (amarelo), Confirmado (verde), Gratuito (cinza)
+- Botão para admin confirmar pagamento manualmente
+- Incluir status de pagamento na exportação CSV
+
+### 6. Storage para Comprovantes
+
+Usar o bucket `gallery` existente ou criar subpasta `payment-proofs/` para armazenar comprovantes de pagamento enviados pelos inscritos.
 
 ---
 
-### 4. Remover Opção de Criar Conta no /admin/login
+### Resumo de Arquivos
 
-**Arquivo:** `src/pages/admin/Login.tsx`
-
-**Situação atual:**
-- Existe estado `isSignUp` e botão para alternar entre login e criação de conta
-- O texto alterna entre "Já tem conta? Faça login" e "Primeiro acesso? Criar conta"
-
-**Alterações:**
-- Remover estado `isSignUp`
-- Remover função `signUp` e sua importação do `useAuth`
-- Remover o bloco JSX do botão de alternância (linhas 124-132)
-- Simplificar o `handleSubmit` para apenas fazer login
-- Atualizar texto do botão para sempre mostrar "Entrar"
-- Remover referência a `isSubmitting ? 'Criando conta...'`
-
----
-
-### Resumo das Alterações
-
-| Item | Arquivo(s) | Tipo |
-|------|-----------|------|
-| Galeria por álbuns | `src/pages/Galeria.tsx`, `src/hooks/useGallery.tsx` | Frontend |
-| Fotos na home | `src/pages/Index.tsx`, `src/hooks/useGallery.tsx` | Frontend |
-| Modo claro | `src/App.tsx`, `src/index.css`, `src/components/AdminLayout.tsx`, novo `ThemeToggle.tsx` | Frontend |
-| Remover signup | `src/pages/admin/Login.tsx` | Frontend |
-
----
+| Arquivo | Alteração |
+|---------|-----------|
+| Migration SQL | Novos campos em `events` e `registrations` |
+| `src/hooks/useEvents.tsx` | Atualizar interfaces e mutations com novos campos |
+| `src/hooks/useRegistrations.tsx` | Adicionar `payment_status`, `payment_proof_url` |
+| `src/pages/admin/Eventos.tsx` | Formulário com preço, pagamento, webhook N8N, campos personalizados |
+| `src/components/EventCustomFieldsManager.tsx` | Novo - gestão de campos de inscrição |
+| `src/pages/Eventos.tsx` | Fluxo de pagamento PIX no formulário público |
+| `src/pages/admin/Inscricoes.tsx` | Coluna de status de pagamento + confirmação manual |
 
 ### Ordem de Implementação
 
-1. Primeiro: Remover opção de criar conta (correção rápida)
-2. Segundo: Adicionar modo claro com ThemeProvider
-3. Terceiro: Criar hook `useRecentPhotos` e integrar fotos na home
-4. Quarto: Refatorar página de galeria para exibir álbuns
+1. Migração de banco (novos campos)
+2. Atualizar hooks e interfaces TypeScript
+3. Admin: formulário de evento com preço/pagamento/webhook
+4. Admin: componente de gestão de campos personalizados
+5. Formulário público com fluxo PIX
+6. Admin: status de pagamento nas inscrições
 
----
-
-### Detalhes Adicionais
-
-**Estrutura da Galeria por Álbuns:**
-```text
-/galeria
-├── [Lista de Álbuns]     <- View inicial
-│   ├── Card Álbum 1 (capa + título + contagem)
-│   ├── Card Álbum 2
-│   └── ...
-└── [Fotos do Álbum]      <- Ao clicar em um álbum
-    ├── Botão "Voltar"
-    ├── Título do álbum
-    └── Grid de fotos
-```
-
-**Seção de Fotos na Home:**
-```text
-[Hero Section]
-[Seção "Nossos Momentos"]
-  ├── Título "Momentos"
-  ├── Grid 2x2 ou 3x2 com fotos recentes
-  └── Link "Ver todas →" para /galeria
-[Social Links Section]
-[Footer]
-```
