@@ -92,6 +92,10 @@ export type Database = {
           is_active: boolean
           location: string | null
           max_capacity: number | null
+          n8n_webhook_url: string | null
+          payment_method: string | null
+          pix_key: string | null
+          price: number | null
           title: string
           updated_at: string
         }
@@ -104,6 +108,10 @@ export type Database = {
           is_active?: boolean
           location?: string | null
           max_capacity?: number | null
+          n8n_webhook_url?: string | null
+          payment_method?: string | null
+          pix_key?: string | null
+          price?: number | null
           title: string
           updated_at?: string
         }
@@ -116,6 +124,10 @@ export type Database = {
           is_active?: boolean
           location?: string | null
           max_capacity?: number | null
+          n8n_webhook_url?: string | null
+          payment_method?: string | null
+          pix_key?: string | null
+          price?: number | null
           title?: string
           updated_at?: string
         }
@@ -232,6 +244,8 @@ export type Database = {
           event_id: string
           id: string
           name: string
+          payment_proof_url: string | null
+          payment_status: string
           whatsapp: string
         }
         Insert: {
@@ -244,6 +258,8 @@ export type Database = {
           event_id: string
           id?: string
           name: string
+          payment_proof_url?: string | null
+          payment_status?: string
           whatsapp: string
         }
         Update: {
@@ -256,6 +272,8 @@ export type Database = {
           event_id?: string
           id?: string
           name?: string
+          payment_proof_url?: string | null
+          payment_status?: string
           whatsapp?: string
         }
         Relationships: [

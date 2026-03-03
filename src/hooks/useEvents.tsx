@@ -12,6 +12,10 @@ export interface Event {
   location: string | null;
   max_capacity: number | null;
   is_active: boolean;
+  price: number | null;
+  payment_method: string | null;
+  pix_key: string | null;
+  n8n_webhook_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -34,6 +38,10 @@ export interface CreateEventData {
   location?: string;
   max_capacity?: number;
   is_active?: boolean;
+  price?: number;
+  payment_method?: string;
+  pix_key?: string;
+  n8n_webhook_url?: string;
 }
 
 export const useEvents = (activeOnly = false) => {

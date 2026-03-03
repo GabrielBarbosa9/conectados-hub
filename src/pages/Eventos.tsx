@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, MapPin, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, Users, Copy, Upload, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEvents, useEventCustomFields, Event } from '@/hooks/useEvents';
 import { useRegistrationCount, useCreateRegistration } from '@/hooks/useRegistrations';
+import { useSettings } from '@/hooks/useSettings';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -16,6 +19,12 @@ const EventCard = ({ event, onRegister }: { event: Event; onRegister: (event: Ev
   const { data: count = 0 } = useRegistrationCount(event.id);
   const spotsLeft = event.max_capacity ? event.max_capacity - count : null;
   const isFull = spotsLeft !== null && spotsLeft <= 0;
+
+  const paymentLabel = () => {
+    if (!event.payment_method || event.payment_method === 'free') return 'Gratuito';
+    if (event.price) return `R$ ${Number(event.price).toFixed(2)}`;
+    return '';
+  };
 
   return (
     <Card className="glass-card animate-slide-up">
@@ -43,14 +52,17 @@ const EventCard = ({ event, onRegister }: { event: Event; onRegister: (event: Ev
           )}
         </div>
         
-        {event.max_capacity && (
-          <div className="flex items-center gap-2 text-sm">
-            <Users className="h-4 w-4" />
-            <span className={isFull ? 'text-destructive' : ''}>
-              {isFull ? 'Vagas esgotadas' : `${spotsLeft} vagas restantes`}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center justify-between text-sm">
+          {event.max_capacity && (
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className={isFull ? 'text-destructive' : ''}>
+                {isFull ? 'Vagas esgotadas' : `${spotsLeft} vagas restantes`}
+              </span>
+            </div>
+          )}
+          <span className="font-semibold text-primary">{paymentLabel()}</span>
+        </div>
         
         <Button 
           className="w-full" 
@@ -66,9 +78,12 @@ const EventCard = ({ event, onRegister }: { event: Event; onRegister: (event: Ev
 
 const Eventos = () => {
   const { data: events, isLoading } = useEvents(true);
+  const { data: settings } = useSettings();
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { data: customFields } = useEventCustomFields(selectedEvent?.id || '');
   const createRegistration = useCreateRegistration();
+  const [uploading, setUploading] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -76,13 +91,50 @@ const Eventos = () => {
     email: '',
     age: '',
     customFields: {} as Record<string, string>,
+    paymentProofUrl: '',
   });
+
+  const globalPixKey = settings?.pix_key;
+  const eventPixKey = selectedEvent?.pix_key || globalPixKey || '';
+  const isPaid = selectedEvent?.payment_method === 'pix' || selectedEvent?.payment_method === 'pix_recorrente';
+
+  const handleCopyPix = async () => {
+    await navigator.clipboard.writeText(eventPixKey);
+    setCopied(true);
+    toast.success('Chave PIX copiada!');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleUploadProof = async (file: File) => {
+    setUploading(true);
+    try {
+      const fileName = `${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('payment-proofs')
+        .upload(fileName, file);
+      
+      if (error) throw error;
+      
+      const { data: urlData } = supabase.storage
+        .from('payment-proofs')
+        .getPublicUrl(data.path);
+      
+      setFormData({ ...formData, paymentProofUrl: urlData.publicUrl });
+      toast.success('Comprovante enviado!');
+    } catch {
+      toast.error('Erro ao enviar comprovante');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEvent) return;
 
     try {
+      const paymentStatus = isPaid ? 'pending' : 'free';
+
       await createRegistration.mutateAsync({
         event_id: selectedEvent.id,
         name: formData.name,
@@ -90,10 +142,12 @@ const Eventos = () => {
         email: formData.email || undefined,
         age: formData.age ? parseInt(formData.age) : undefined,
         custom_fields: Object.keys(formData.customFields).length > 0 ? formData.customFields : undefined,
+        payment_status: paymentStatus,
+        payment_proof_url: formData.paymentProofUrl || undefined,
       });
       
       setSelectedEvent(null);
-      setFormData({ name: '', whatsapp: '', email: '', age: '', customFields: {} });
+      setFormData({ name: '', whatsapp: '', email: '', age: '', customFields: {}, paymentProofUrl: '' });
     } catch (error) {
       console.error(error);
     }
@@ -177,19 +231,85 @@ const Eventos = () => {
                 <Label htmlFor={field.id}>
                   {field.field_name} {field.is_required && '*'}
                 </Label>
-                <Input
-                  id={field.id}
-                  required={field.is_required}
-                  value={formData.customFields[field.field_name] || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    customFields: { ...formData.customFields, [field.field_name]: e.target.value }
-                  })}
-                />
+                {field.field_type === 'select' && Array.isArray(field.options) ? (
+                  <Select
+                    value={formData.customFields[field.field_name] || ''}
+                    onValueChange={(v) => setFormData({
+                      ...formData,
+                      customFields: { ...formData.customFields, [field.field_name]: v }
+                    })}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>
+                      {(field.options as string[]).map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    id={field.id}
+                    type={field.field_type === 'number' ? 'number' : 'text'}
+                    required={field.is_required}
+                    value={formData.customFields[field.field_name] || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      customFields: { ...formData.customFields, [field.field_name]: e.target.value }
+                    })}
+                  />
+                )}
               </div>
             ))}
+
+            {/* PIX Payment Section */}
+            {isPaid && selectedEvent?.price && (
+              <div className="space-y-3 rounded-md border border-primary/30 bg-primary/5 p-4">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">Valor da inscrição</p>
+                  <p className="text-2xl font-bold text-primary">
+                    R$ {Number(selectedEvent.price).toFixed(2)}
+                  </p>
+                  {selectedEvent.payment_method === 'pix_recorrente' && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Cobrança mensal via WhatsApp
+                    </p>
+                  )}
+                </div>
+
+                {eventPixKey && (
+                  <div className="space-y-2">
+                    <Label>Chave PIX</Label>
+                    <div className="flex gap-2">
+                      <Input value={eventPixKey} readOnly className="font-mono text-sm" />
+                      <Button type="button" variant="outline" size="icon" onClick={handleCopyPix}>
+                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label>Comprovante de Pagamento</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept="image/*,.pdf"
+                      disabled={uploading}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleUploadProof(file);
+                      }}
+                    />
+                  </div>
+                  {formData.paymentProofUrl && (
+                    <p className="text-xs text-green-600">✓ Comprovante enviado</p>
+                  )}
+                  {uploading && <p className="text-xs text-muted-foreground">Enviando...</p>}
+                </div>
+              </div>
+            )}
             
-            <Button type="submit" className="w-full" disabled={createRegistration.isPending}>
+            <Button type="submit" className="w-full" disabled={createRegistration.isPending || uploading}>
               {createRegistration.isPending ? 'Enviando...' : 'Confirmar Inscrição'}
             </Button>
           </form>
