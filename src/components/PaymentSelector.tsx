@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { CreditCard, Smartphone, Check, Copy, Upload, Loader2, CalendarIcon } from 'lucide-react';
+import { CreditCard, Smartphone, Check, Copy, Upload, Loader2, CalendarIcon, Lock, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -113,8 +113,13 @@ const PaymentSelector = ({ event, pixKey, onChange }: PaymentSelectorProps) => {
   const showInstallmentOption = event.accepts_installments && maxInstallments > 1;
 
   return (
-    <div className="space-y-4 rounded-md border border-primary/30 bg-primary/5 p-4">
-      <div className="text-center">
+    <div className="space-y-4 rounded-md border border-primary/30 bg-primary/5 p-4 relative overflow-hidden">
+      <div className="absolute top-0 right-0 bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-medium px-2 py-1 rounded-bl-lg flex items-center gap-1">
+        <Lock className="w-3 h-3" />
+        Ambiente Seguro
+      </div>
+      
+      <div className="text-center pt-2">
         <p className="text-sm text-muted-foreground">Valor da inscrição</p>
         <p className="text-2xl font-bold text-primary">R$ {price.toFixed(2)}</p>
         {paymentMode === 'installments' && installmentsTotal > 1 && (
@@ -212,7 +217,10 @@ const PaymentSelector = ({ event, pixKey, onChange }: PaymentSelectorProps) => {
           </div>
 
           <div className="space-y-1">
-            <Label className="text-sm">Comprovante de pagamento (opcional)</Label>
+            <Label className="text-sm flex items-center gap-2">
+              Comprovante de pagamento (opcional)
+              <ShieldCheck className="h-3 w-3 text-green-500" />
+            </Label>
             <div className="flex items-center gap-2">
               <Input
                 type="file"
