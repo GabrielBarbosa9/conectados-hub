@@ -15,6 +15,11 @@ export interface Registration {
   checked_in_at: string | null;
   payment_status: string;
   payment_proof_url: string | null;
+  payment_type: string | null;
+  payment_mode: string | null;
+  installments_total: number | null;
+  credit_card_payment_date: string | null;
+  user_id: string | null;
   created_at: string;
 }
 
@@ -27,6 +32,11 @@ export interface CreateRegistrationData {
   custom_fields?: Json;
   payment_status?: string;
   payment_proof_url?: string;
+  payment_type?: string;
+  payment_mode?: string;
+  installments_total?: number;
+  credit_card_payment_date?: string;
+  user_id?: string;
 }
 
 export const useRegistrations = (eventId?: string) => {
@@ -63,6 +73,24 @@ export const useRegistrationCount = (eventId: string) => {
       return count || 0;
     },
     enabled: !!eventId,
+  });
+};
+
+export const useUserEventRegistration = (eventId?: string, userId?: string) => {
+  return useQuery({
+    queryKey: ['user-event-registration', eventId, userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('registrations')
+        .select('id')
+        .eq('event_id', eventId!)
+        .eq('user_id', userId!)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!eventId && !!userId,
   });
 };
 

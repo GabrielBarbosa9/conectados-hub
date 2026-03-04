@@ -98,6 +98,9 @@ export type Database = {
           price: number | null
           title: string
           updated_at: string
+          accepts_credit_card: boolean
+          accepts_installments: boolean
+          max_installments: number
         }
         Insert: {
           created_at?: string
@@ -114,6 +117,9 @@ export type Database = {
           price?: number | null
           title: string
           updated_at?: string
+          accepts_credit_card?: boolean
+          accepts_installments?: boolean
+          max_installments?: number
         }
         Update: {
           created_at?: string
@@ -130,6 +136,9 @@ export type Database = {
           price?: number | null
           title?: string
           updated_at?: string
+          accepts_credit_card?: boolean
+          accepts_installments?: boolean
+          max_installments?: number
         }
         Relationships: []
       }
@@ -214,6 +223,16 @@ export type Database = {
           name: string | null
           updated_at: string
           user_id: string
+          avatar_url: string | null
+          cpf: string | null
+          birth_date: string | null
+          phone: string | null
+          address_street: string | null
+          address_number: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_city: string | null
+          address_state: string | null
         }
         Insert: {
           created_at?: string
@@ -222,6 +241,16 @@ export type Database = {
           name?: string | null
           updated_at?: string
           user_id: string
+          avatar_url?: string | null
+          cpf?: string | null
+          birth_date?: string | null
+          phone?: string | null
+          address_street?: string | null
+          address_number?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_city?: string | null
+          address_state?: string | null
         }
         Update: {
           created_at?: string
@@ -230,8 +259,65 @@ export type Database = {
           name?: string | null
           updated_at?: string
           user_id?: string
+          avatar_url?: string | null
+          cpf?: string | null
+          birth_date?: string | null
+          phone?: string | null
+          address_street?: string | null
+          address_number?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_city?: string | null
+          address_state?: string | null
         }
         Relationships: []
+      }
+      installment_payments: {
+        Row: {
+          id: string
+          registration_id: string
+          installment_number: number
+          amount: number
+          due_date: string | null
+          payment_status: string
+          payment_date: string | null
+          proof_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          registration_id: string
+          installment_number: number
+          amount: number
+          due_date?: string | null
+          payment_status?: string
+          payment_date?: string | null
+          proof_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          registration_id?: string
+          installment_number?: number
+          amount?: number
+          due_date?: string | null
+          payment_status?: string
+          payment_date?: string | null
+          proof_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installment_payments_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "registrations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       registrations: {
         Row: {
@@ -246,6 +332,11 @@ export type Database = {
           name: string
           payment_proof_url: string | null
           payment_status: string
+          payment_type: string | null
+          payment_mode: string | null
+          installments_total: number | null
+          credit_card_payment_date: string | null
+          user_id: string | null
           whatsapp: string
         }
         Insert: {
@@ -260,6 +351,11 @@ export type Database = {
           name: string
           payment_proof_url?: string | null
           payment_status?: string
+          payment_type?: string | null
+          payment_mode?: string | null
+          installments_total?: number | null
+          credit_card_payment_date?: string | null
+          user_id?: string | null
           whatsapp: string
         }
         Update: {
@@ -274,6 +370,11 @@ export type Database = {
           name?: string
           payment_proof_url?: string | null
           payment_status?: string
+          payment_type?: string | null
+          payment_mode?: string | null
+          installments_total?: number | null
+          credit_card_payment_date?: string | null
+          user_id?: string | null
           whatsapp?: string
         }
         Relationships: [

@@ -12,6 +12,10 @@ import Eventos from "./pages/Eventos";
 import Doacoes from "./pages/Doacoes";
 import Galeria from "./pages/Galeria";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import Cadastro from "./pages/Cadastro";
+import Perfil from "./pages/Perfil";
+import MinhasInscricoes from "./pages/MinhasInscricoes";
 
 // Admin Pages
 import AdminLogin from "./pages/admin/Login";
@@ -42,6 +46,10 @@ const App = () => (
             <Route path="/eventos" element={<Eventos />} />
             <Route path="/doacoes" element={<Doacoes />} />
             <Route path="/galeria" element={<Galeria />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/cadastro" element={<Cadastro />} />
+            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/minhas-inscricoes" element={<MinhasInscricoes />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />

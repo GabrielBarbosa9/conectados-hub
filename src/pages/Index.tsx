@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Calendar, Heart, Instagram, MessageCircle, Images, ArrowRight } from 'lucide-react';
+import { Calendar, Heart, Instagram, MessageCircle, Images, ArrowRight, User, LogIn, ClipboardList } from 'lucide-react';
 import { useSettings } from '@/hooks/useSettings';
 import { useRecentPhotos } from '@/hooks/useGallery';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import logoConectados from '@/assets/logo-conectados.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
@@ -10,6 +12,8 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 const Index = () => {
   const { data: settings } = useSettings();
   const { data: recentPhotos, isLoading: loadingPhotos } = useRecentPhotos(6);
+  const { user } = useAuth();
+  const { data: profile } = useProfile(user?.id);
 
   const openWhatsApp = () => {
     if (settings?.whatsapp_number) {
@@ -20,8 +24,35 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Theme Toggle - Fixed */}
-      <div className="fixed top-4 right-4 z-50">
+      {/* Top Bar - Fixed */}
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        {user ? (
+          <>
+            <Link to="/minhas-inscricoes">
+              <Button variant="outline" size="sm" className="gap-2">
+                <ClipboardList className="h-4 w-4" />
+                <span className="hidden sm:inline">Inscrições</span>
+              </Button>
+            </Link>
+            <Link to="/perfil">
+              <Button variant="outline" size="sm" className="gap-2">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" />
+                ) : (
+                  <User className="h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">{profile?.name?.split(' ')[0] || 'Perfil'}</span>
+              </Button>
+            </Link>
+          </>
+        ) : (
+          <Link to="/login">
+            <Button variant="outline" size="sm" className="gap-2">
+              <LogIn className="h-4 w-4" />
+              Entrar
+            </Button>
+          </Link>
+        )}
         <ThemeToggle />
       </div>
 

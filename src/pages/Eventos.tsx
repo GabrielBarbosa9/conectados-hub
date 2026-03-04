@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, MapPin, Users, Copy, Upload, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Calendar, Clock, MapPin, Users, LogIn, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -8,9 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEvents, useEventCustomFields, Event } from '@/hooks/useEvents';
-import { useRegistrationCount, useCreateRegistration } from '@/hooks/useRegistrations';
+import { useRegistrationCount, useCreateRegistration, useUserEventRegistration } from '@/hooks/useRegistrations';
+import { useProfile } from '@/hooks/useProfile';
 import { useSettings } from '@/hooks/useSettings';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useCreateInstallments } from '@/hooks/useInstallments';
+import PaymentSelector, { PaymentSelectionResult } from '@/components/PaymentSelector';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -79,63 +82,64 @@ const EventCard = ({ event, onRegister }: { event: Event; onRegister: (event: Ev
 const Eventos = () => {
   const { data: events, isLoading } = useEvents(true);
   const { data: settings } = useSettings();
+  const { user } = useAuth();
+  const { data: profile } = useProfile(user?.id);
+  const navigate = useNavigate();
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { data: customFields } = useEventCustomFields(selectedEvent?.id || '');
+  const { data: existingRegistration } = useUserEventRegistration(selectedEvent?.id, user?.id);
   const createRegistration = useCreateRegistration();
-  const [uploading, setUploading] = useState(false);
-  const [copied, setCopied] = useState(false);
-  
+  const createInstallments = useCreateInstallments();
+
   const [formData, setFormData] = useState({
     name: '',
     whatsapp: '',
     email: '',
     age: '',
     customFields: {} as Record<string, string>,
-    paymentProofUrl: '',
   });
+  const [paymentResult, setPaymentResult] = useState<PaymentSelectionResult | null>(null);
+
+  useEffect(() => {
+    if (selectedEvent && profile) {
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || profile.name || '',
+        whatsapp: prev.whatsapp || profile.phone || '',
+        email: prev.email || profile.email || user?.email || '',
+      }));
+    }
+  }, [selectedEvent, profile, user]);
 
   const globalPixKey = settings?.pix_key;
   const eventPixKey = selectedEvent?.pix_key || globalPixKey || '';
-  const isPaid = selectedEvent?.payment_method === 'pix' || selectedEvent?.payment_method === 'pix_recorrente';
-
-  const handleCopyPix = async () => {
-    await navigator.clipboard.writeText(eventPixKey);
-    setCopied(true);
-    toast.success('Chave PIX copiada!');
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleUploadProof = async (file: File) => {
-    setUploading(true);
-    try {
-      const fileName = `${Date.now()}-${file.name}`;
-      const { data, error } = await supabase.storage
-        .from('payment-proofs')
-        .upload(fileName, file);
-      
-      if (error) throw error;
-      
-      const { data: urlData } = supabase.storage
-        .from('payment-proofs')
-        .getPublicUrl(data.path);
-      
-      setFormData({ ...formData, paymentProofUrl: urlData.publicUrl });
-      toast.success('Comprovante enviado!');
-    } catch {
-      toast.error('Erro ao enviar comprovante');
-    } finally {
-      setUploading(false);
-    }
-  };
+  const isPaid = selectedEvent?.payment_method === 'pix' ||
+    selectedEvent?.payment_method === 'pix_recorrente' ||
+    (selectedEvent?.price && selectedEvent.price > 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEvent) return;
 
-    try {
-      const paymentStatus = isPaid ? 'pending' : 'free';
+    if (isPaid && selectedEvent.accepts_credit_card && !paymentResult) {
+      toast.error('Selecione a forma de pagamento.');
+      return;
+    }
+    if (paymentResult?.paymentType === 'credit_card' && !paymentResult.creditCardPaymentDate) {
+      toast.error('Informe a data prevista de pagamento.');
+      return;
+    }
 
-      await createRegistration.mutateAsync({
+    if (existingRegistration) {
+      toast.error('Você já está inscrito neste evento.');
+      return;
+    }
+
+    try {
+      const isFree = !isPaid;
+      const paymentStatus = isFree ? 'free' : 'pending';
+
+      const registration = await createRegistration.mutateAsync({
         event_id: selectedEvent.id,
         name: formData.name,
         whatsapp: formData.whatsapp,
@@ -143,11 +147,36 @@ const Eventos = () => {
         age: formData.age ? parseInt(formData.age) : undefined,
         custom_fields: Object.keys(formData.customFields).length > 0 ? formData.customFields : undefined,
         payment_status: paymentStatus,
-        payment_proof_url: formData.paymentProofUrl || undefined,
+        payment_proof_url: paymentResult?.proofUrl || undefined,
+        payment_type: paymentResult?.paymentType,
+        payment_mode: paymentResult?.paymentMode,
+        installments_total: paymentResult?.installmentsTotal || 1,
+        credit_card_payment_date: paymentResult?.creditCardPaymentDate,
+        user_id: user?.id,
       });
-      
+
+      if (
+        registration &&
+        paymentResult?.paymentMode === 'installments' &&
+        (paymentResult.installmentsTotal || 0) > 1 &&
+        selectedEvent.price
+      ) {
+        await createInstallments.mutateAsync({
+          registrationId: registration.id,
+          total: paymentResult.installmentsTotal,
+          amount: Number(selectedEvent.price),
+        });
+      }
+
+      const wasPaid = !isFree;
       setSelectedEvent(null);
-      setFormData({ name: '', whatsapp: '', email: '', age: '', customFields: {}, paymentProofUrl: '' });
+      setFormData({ name: '', whatsapp: '', email: '', age: '', customFields: {} });
+      setPaymentResult(null);
+
+      if (wasPaid && user) {
+        toast.success('Inscrição realizada! Redirecionando para seus pagamentos...');
+        setTimeout(() => navigate('/minhas-inscricoes'), 1500);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -261,56 +290,36 @@ const Eventos = () => {
               </div>
             ))}
 
-            {/* PIX Payment Section */}
-            {isPaid && selectedEvent?.price && (
-              <div className="space-y-3 rounded-md border border-primary/30 bg-primary/5 p-4">
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Valor da inscrição</p>
-                  <p className="text-2xl font-bold text-primary">
-                    R$ {Number(selectedEvent.price).toFixed(2)}
-                  </p>
-                  {selectedEvent.payment_method === 'pix_recorrente' && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Cobrança mensal via WhatsApp
-                    </p>
-                  )}
-                </div>
+            {isPaid && selectedEvent && eventPixKey && (
+              <PaymentSelector
+                event={selectedEvent}
+                pixKey={eventPixKey}
+                onChange={setPaymentResult}
+              />
+            )}
 
-                {eventPixKey && (
-                  <div className="space-y-2">
-                    <Label>Chave PIX</Label>
-                    <div className="flex gap-2">
-                      <Input value={eventPixKey} readOnly className="font-mono text-sm" />
-                      <Button type="button" variant="outline" size="icon" onClick={handleCopyPix}>
-                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label>Comprovante de Pagamento</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="file"
-                      accept="image/*,.pdf"
-                      disabled={uploading}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleUploadProof(file);
-                      }}
-                    />
-                  </div>
-                  {formData.paymentProofUrl && (
-                    <p className="text-xs text-green-600">✓ Comprovante enviado</p>
-                  )}
-                  {uploading && <p className="text-xs text-muted-foreground">Enviando...</p>}
-                </div>
+            {existingRegistration && user && (
+              <div className="rounded-md bg-green-500/10 border border-green-500/30 p-3 text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                <span>
+                  Você já está inscrito neste evento.{' '}
+                  <Link to="/minhas-inscricoes" className="text-primary hover:underline font-medium">Ver minhas inscrições</Link>
+                </span>
               </div>
             )}
-            
-            <Button type="submit" className="w-full" disabled={createRegistration.isPending || uploading}>
-              {createRegistration.isPending ? 'Enviando...' : 'Confirmar Inscrição'}
+
+            {!user && (
+              <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground flex items-center gap-2">
+                <LogIn className="h-4 w-4 shrink-0" />
+                <span>
+                  <Link to="/login" className="text-primary hover:underline font-medium">Faça login</Link>
+                  {' '}para acompanhar suas inscrições e pagamentos.
+                </span>
+              </div>
+            )}
+
+            <Button type="submit" className="w-full" disabled={createRegistration.isPending || createInstallments.isPending || !!existingRegistration}>
+              {createRegistration.isPending || createInstallments.isPending ? 'Enviando...' : existingRegistration ? 'Já inscrito' : 'Confirmar Inscrição'}
             </Button>
           </form>
         </DialogContent>
