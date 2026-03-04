@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, MapPin, Users, LogIn, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -99,15 +99,20 @@ const Eventos = () => {
     customFields: {} as Record<string, string>,
   });
   const [paymentResult, setPaymentResult] = useState<PaymentSelectionResult | null>(null);
+  const lastAutoFilledEventRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (selectedEvent && profile) {
+    if (selectedEvent && profile && lastAutoFilledEventRef.current !== selectedEvent.id) {
+      lastAutoFilledEventRef.current = selectedEvent.id;
       setFormData((prev) => ({
         ...prev,
-        name: prev.name || profile.name || '',
-        whatsapp: prev.whatsapp || profile.phone || '',
-        email: prev.email || profile.email || user?.email || '',
+        name: profile.name || '',
+        whatsapp: profile.phone || '',
+        email: profile.email || user?.email || '',
       }));
+    }
+    if (!selectedEvent) {
+      lastAutoFilledEventRef.current = null;
     }
   }, [selectedEvent, profile, user]);
 
@@ -161,11 +166,16 @@ const Eventos = () => {
         (paymentResult.installmentsTotal || 0) > 1 &&
         selectedEvent.price
       ) {
-        await createInstallments.mutateAsync({
-          registrationId: registration.id,
-          total: paymentResult.installmentsTotal,
-          amount: Number(selectedEvent.price),
-        });
+        try {
+          await createInstallments.mutateAsync({
+            registrationId: registration.id,
+            total: paymentResult.installmentsTotal,
+            amount: Number(selectedEvent.price),
+          });
+        } catch (installmentError) {
+          console.error('Erro ao criar parcelas:', installmentError);
+          toast.error('Inscrição realizada, mas houve erro ao criar parcelas. Entre em contato com o administrador.');
+        }
       }
 
       const wasPaid = !isFree;
