@@ -80,8 +80,8 @@ export const useUserEventRegistration = (eventId?: string, userId?: string) => {
   return useQuery({
     queryKey: ['user-event-registration', eventId, userId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('registrations')
+      const { data, error } = await (supabase
+        .from('registrations') as any)
         .select('id')
         .eq('event_id', eventId!)
         .eq('user_id', userId!)

@@ -216,7 +216,7 @@ export const useConfirmInstallment = () => {
         }
       }
       const { data, error } = await supabase
-        .from('installment_payments')
+        .from('installment_payments' as any)
         .update(updateData)
         .eq('id', installmentId)
         .select()
