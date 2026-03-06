@@ -210,11 +210,11 @@ export const useEventRevenue = () => {
 
       const { data: regs, error: regsError } = await supabase
         .from('registrations')
-        .select('id, event_id, payment_status, payment_mode, installments_total');
+        .select('id, event_id, payment_status');
       if (regsError) throw regsError;
 
       const { data: paidInstallments, error: instError } = await supabase
-        .from('installment_payments')
+        .from('installment_payments' as any)
         .select('registration_id, amount')
         .eq('payment_status', 'paid');
       if (instError) throw instError;
