@@ -184,7 +184,7 @@ async function recalcPendingInstallments(
 
   for (let i = 0; i < pending.length; i++) {
     const { error: updateError } = await supabase
-      .from('installment_payments')
+      .from('installment_payments' as any)
       .update({ amount: amounts[i] })
       .eq('id', pending[i].id);
     if (updateError) throw updateError;
