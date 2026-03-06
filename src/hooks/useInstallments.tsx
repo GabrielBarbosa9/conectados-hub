@@ -22,7 +22,7 @@ export const useInstallments = (registrationId?: string) => {
     queryFn: async () => {
       if (!registrationId) return [];
       const { data, error } = await supabase
-        .from('installment_payments')
+        .from('installment_payments' as any)
         .select('*')
         .eq('registration_id', registrationId)
         .order('installment_number', { ascending: true });
