@@ -286,6 +286,62 @@ export type Database = {
           },
         ]
       }
+      sermon_outline_files: {
+        Row: {
+          created_at: string
+          display_order: number
+          file_path: string
+          folder_id: string
+          id: string
+          title: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          file_path: string
+          folder_id: string
+          id?: string
+          title?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          file_path?: string
+          folder_id?: string
+          id?: string
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sermon_outline_files_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "sermon_outline_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sermon_outline_folders: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       settings: {
         Row: {
           id: string
