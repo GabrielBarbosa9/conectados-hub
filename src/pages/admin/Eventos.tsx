@@ -358,6 +358,9 @@ const Eventos = () => {
                   <p className="text-sm text-muted-foreground">
                     {format(new Date(event.event_date), 'dd/MM/yyyy')}
                     {event.event_time && ` às ${event.event_time.slice(0, 5)}`}
+                    {event.end_date && (
+                      <> — {format(new Date(event.end_date), 'dd/MM/yyyy')}{event.end_time && ` às ${event.end_time.slice(0, 5)}`}</>
+                    )}
                     {' · '}
                     {paymentLabel(event.payment_method)}
                     {event.price ? ` · R$ ${Number(event.price).toFixed(2)}` : ''}

@@ -42,13 +42,11 @@ const EventCard = ({ event, onRegister }: { event: Event; onRegister: (event: Ev
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             {format(new Date(event.event_date), "dd 'de' MMMM", { locale: ptBR })}
+            {event.event_time && ` às ${event.event_time.slice(0, 5)}`}
+            {event.end_date && (
+              <> — {format(new Date(event.end_date), "dd 'de' MMMM", { locale: ptBR })}{event.end_time && ` às ${event.end_time.slice(0, 5)}`}</>
+            )}
           </div>
-          {event.event_time && (
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              {event.event_time.slice(0, 5)}
-            </div>
-          )}
           {event.location && (
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
