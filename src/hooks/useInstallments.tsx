@@ -106,10 +106,12 @@ export const useUploadInstallmentProof = () => {
       installmentId,
       registrationId,
       file,
+      amount,
     }: {
       installmentId: string;
       registrationId: string;
       file: File;
+      amount?: number;
     }) => {
       const ext = file.name.split('.').pop();
       const path = `${registrationId}/${installmentId}.${ext}`;
@@ -123,9 +125,16 @@ export const useUploadInstallmentProof = () => {
         .from('installment-proofs')
         .getPublicUrl(path);
 
+      const updatePayload: { proof_url: string; payment_status: string; amount?: number } = {
+        proof_url: urlData.publicUrl,
+        payment_status: 'pending',
+      };
+      if (amount != null && amount >= 0) {
+        updatePayload.amount = amount;
+      }
       const { error: updateError } = await supabase
         .from('installment_payments')
-        .update({ proof_url: urlData.publicUrl, payment_status: 'pending' })
+        .update(updatePayload)
         .eq('id', installmentId);
       if (updateError) throw updateError;
 
@@ -141,6 +150,47 @@ export const useUploadInstallmentProof = () => {
   });
 };
 
+/**
+ * Recalcula o valor das parcelas pendentes após um pagamento com valor customizado.
+ * Total já pago = soma dos amount das parcelas paid; restante = eventPrice - totalPaid;
+ * novo valor por parcela pendente = restante / quantidade de pendentes.
+ */
+async function recalcPendingInstallments(
+  registrationId: string,
+  eventPrice: number
+): Promise<void> {
+  const { data: all, error: fetchError } = await supabase
+    .from('installment_payments')
+    .select('id, amount, payment_status')
+    .eq('registration_id', registrationId)
+    .order('installment_number', { ascending: true });
+  if (fetchError) throw fetchError;
+  if (!all?.length) return;
+
+  const paidTotal = (all as InstallmentPayment[])
+    .filter((i) => i.payment_status === 'paid')
+    .reduce((sum, i) => sum + Number(i.amount), 0);
+  const pending = (all as InstallmentPayment[]).filter(
+    (i) => i.payment_status !== 'paid'
+  );
+  if (pending.length === 0) return;
+
+  const remaining = Math.max(0, eventPrice - paidTotal);
+  const perInstallment = parseFloat((remaining / pending.length).toFixed(2));
+  const remainder = Math.round((remaining - perInstallment * pending.length) * 100) / 100;
+  const amounts = pending.map((_, idx) =>
+    idx === pending.length - 1 ? perInstallment + remainder : perInstallment
+  );
+
+  for (let i = 0; i < pending.length; i++) {
+    const { error: updateError } = await supabase
+      .from('installment_payments')
+      .update({ amount: amounts[i] })
+      .eq('id', pending[i].id);
+    if (updateError) throw updateError;
+  }
+}
+
 export const useConfirmInstallment = () => {
   const queryClient = useQueryClient();
 
@@ -149,14 +199,21 @@ export const useConfirmInstallment = () => {
       installmentId,
       registrationId,
       status,
+      amount,
+      eventPrice,
     }: {
       installmentId: string;
       registrationId: string;
       status: 'paid' | 'overdue' | 'pending';
+      amount?: number;
+      eventPrice?: number;
     }) => {
       const updateData: Record<string, unknown> = { payment_status: status };
       if (status === 'paid') {
         updateData.payment_date = format(new Date(), 'yyyy-MM-dd');
+        if (amount != null && amount >= 0) {
+          updateData.amount = amount;
+        }
       }
       const { data, error } = await supabase
         .from('installment_payments')
@@ -165,11 +222,22 @@ export const useConfirmInstallment = () => {
         .select()
         .single();
       if (error) throw error;
+
+      if (
+        status === 'paid' &&
+        eventPrice != null &&
+        eventPrice > 0
+      ) {
+        await recalcPendingInstallments(registrationId, eventPrice);
+      }
+
       return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['installments', variables.registrationId] });
       queryClient.invalidateQueries({ queryKey: ['registrations'] });
+      queryClient.invalidateQueries({ queryKey: ['installments-by-event'] });
+      queryClient.invalidateQueries({ queryKey: ['event-revenue'] });
       toast.success('Parcela atualizada!');
     },
     onError: () => {

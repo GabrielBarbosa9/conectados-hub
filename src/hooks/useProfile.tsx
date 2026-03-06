@@ -190,3 +190,86 @@ export const useUploadAvatar = () => {
     },
   });
 };
+
+export const useAllProfiles = () => {
+  return useQuery({
+    queryKey: ['all-profiles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as Profile[];
+    },
+  });
+};
+
+export const useUpdateProfileByAdmin = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ userId, data }: { userId: string; data: UpdateProfileData }) => {
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (existing) {
+        const { data: updated, error } = await supabase
+          .from('profiles')
+          .update(data)
+          .eq('user_id', userId)
+          .select()
+          .single();
+        if (error) throw error;
+        return updated;
+      } else {
+        const { data: inserted, error } = await supabase
+          .from('profiles')
+          .insert({ user_id: userId, ...data })
+          .select()
+          .single();
+        if (error) throw error;
+        return inserted;
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['profile', variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ['all-profiles'] });
+      toast.success('Perfil atualizado com sucesso!');
+    },
+    onError: (error: Error) => {
+      if (error.message?.includes('cpf')) {
+        toast.error('CPF já cadastrado no sistema.');
+      } else {
+        toast.error('Erro ao atualizar perfil.');
+      }
+      console.error('Error updating profile:', error);
+    },
+  });
+};
+
+export const useDeleteProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', userId);
+      if (error) throw error;
+    },
+    onSuccess: (_, userId) => {
+      queryClient.invalidateQueries({ queryKey: ['all-profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
+      toast.success('Perfil excluído.');
+    },
+    onError: (error: Error) => {
+      toast.error('Erro ao excluir perfil.');
+      console.error('Error deleting profile:', error);
+    },
+  });
+};

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Calendar, Heart, Instagram, MessageCircle, Images, ArrowRight, User, LogIn, ClipboardList } from 'lucide-react';
+import { Calendar, Heart, Instagram, MessageCircle, Images, FileText, ArrowRight, User, LogIn, ClipboardList } from 'lucide-react';
 import { useSettings } from '@/hooks/useSettings';
 import { useRecentPhotos } from '@/hooks/useGallery';
 import { useAuth } from '@/hooks/useAuth';
@@ -60,6 +60,13 @@ const Index = () => {
               <Button size="lg" variant="outline" className="gap-2">
                 <Images className="h-5 w-5" />
                 Galeria
+              </Button>
+            </Link>
+
+            <Link to="/esbocos">
+              <Button size="lg" variant="outline" className="gap-2">
+                <FileText className="h-5 w-5" />
+                Esboços de pregação
               </Button>
             </Link>
           </div>

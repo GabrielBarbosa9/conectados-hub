@@ -3,17 +3,62 @@ import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Download, Trash2, CheckCircle, ChevronDown, ChevronUp, ExternalLink, XCircle, Search, Users, Clock, CircleDollarSign, UserCheck } from 'lucide-react';
 import { useEvents } from '@/hooks/useEvents';
 import { useRegistrations, useDeleteRegistration, useConfirmPayment } from '@/hooks/useRegistrations';
-import { useInstallments, useConfirmInstallment } from '@/hooks/useInstallments';
+import { useInstallments, useConfirmInstallment, type InstallmentPayment } from '@/hooks/useInstallments';
 import { format } from 'date-fns';
 
-const InstallmentsPanel = ({ registrationId }: { registrationId: string }) => {
+const InstallmentsPanel = ({
+  registrationId,
+  eventPrice,
+}: {
+  registrationId: string;
+  eventPrice: number | null;
+}) => {
   const { data: installments, isLoading } = useInstallments(registrationId);
   const confirmInstallment = useConfirmInstallment();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmInst, setConfirmInst] = useState<InstallmentPayment | null>(null);
+  const [confirmAmount, setConfirmAmount] = useState('');
+
+  const openConfirmPaid = (inst: InstallmentPayment) => {
+    setConfirmInst(inst);
+    setConfirmAmount(Number(inst.amount).toFixed(2));
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmPaid = () => {
+    if (!confirmInst) return;
+    const amount = parseFloat(confirmAmount.replace(',', '.'));
+    if (Number.isNaN(amount) || amount < 0) return;
+    confirmInstallment.mutate(
+      {
+        installmentId: confirmInst.id,
+        registrationId,
+        status: 'paid',
+        amount,
+        eventPrice: eventPrice ?? undefined,
+      },
+      {
+        onSuccess: () => {
+          setConfirmOpen(false);
+          setConfirmInst(null);
+        },
+      }
+    );
+  };
 
   if (isLoading) return <div className="py-2 text-xs text-muted-foreground">Carregando parcelas...</div>;
   if (!installments?.length) return <div className="py-2 text-xs text-muted-foreground">Nenhuma parcela encontrada.</div>;
@@ -26,51 +71,87 @@ const InstallmentsPanel = ({ registrationId }: { registrationId: string }) => {
   const statusLabel: Record<string, string> = { pending: 'Pendente', paid: 'Pago', overdue: 'Vencida' };
 
   return (
-    <div className="mt-2 space-y-1">
-      {installments.map((inst) => (
-        <div key={inst.id} className="flex items-center gap-3 rounded-md bg-muted/50 px-3 py-2 text-sm">
-          <span className="w-20 shrink-0 font-medium">Parcela {inst.installment_number}</span>
-          <span className="w-24 shrink-0">R$ {Number(inst.amount).toFixed(2)}</span>
-          <span className="w-24 shrink-0 text-xs text-muted-foreground">
-            {inst.due_date ? format(new Date(inst.due_date + 'T00:00:00'), 'dd/MM/yyyy') : '-'}
-          </span>
-          <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${statusStyle[inst.payment_status] || statusStyle.pending}`}>
-            {statusLabel[inst.payment_status] || 'Pendente'}
-          </span>
-          {inst.proof_url && (
-            <a href={inst.proof_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
-              <ExternalLink className="h-3 w-3" />Comprovante
-            </a>
-          )}
-          <div className="ml-auto flex gap-1">
-            {inst.payment_status !== 'paid' && (
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7"
-                title="Confirmar pago"
-                disabled={confirmInstallment.isPending}
-                onClick={() => confirmInstallment.mutate({ installmentId: inst.id, registrationId, status: 'paid' })}
-              >
-                <CheckCircle className="h-4 w-4 text-green-500" />
-              </Button>
+    <>
+      <div className="mt-2 space-y-1">
+        {installments.map((inst) => (
+          <div key={inst.id} className="flex items-center gap-3 rounded-md bg-muted/50 px-3 py-2 text-sm">
+            <span className="w-20 shrink-0 font-medium">Parcela {inst.installment_number}</span>
+            <span className="w-24 shrink-0">R$ {Number(inst.amount).toFixed(2)}</span>
+            <span className="w-24 shrink-0 text-xs text-muted-foreground">
+              {inst.due_date ? format(new Date(inst.due_date + 'T00:00:00'), 'dd/MM/yyyy') : '-'}
+            </span>
+            <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${statusStyle[inst.payment_status] || statusStyle.pending}`}>
+              {statusLabel[inst.payment_status] || 'Pendente'}
+            </span>
+            {inst.proof_url && (
+              <a href={inst.proof_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
+                <ExternalLink className="h-3 w-3" />Comprovante
+              </a>
             )}
-            {inst.payment_status === 'pending' && (
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7"
-                title="Marcar vencida"
-                disabled={confirmInstallment.isPending}
-                onClick={() => confirmInstallment.mutate({ installmentId: inst.id, registrationId, status: 'overdue' })}
-              >
-                <XCircle className="h-4 w-4 text-destructive" />
-              </Button>
-            )}
+            <div className="ml-auto flex gap-1">
+              {inst.payment_status !== 'paid' && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  title="Confirmar pago"
+                  disabled={confirmInstallment.isPending}
+                  onClick={() => openConfirmPaid(inst)}
+                >
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                </Button>
+              )}
+              {inst.payment_status === 'pending' && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  title="Marcar vencida"
+                  disabled={confirmInstallment.isPending}
+                  onClick={() => confirmInstallment.mutate({ installmentId: inst.id, registrationId, status: 'overdue' })}
+                >
+                  <XCircle className="h-4 w-4 text-destructive" />
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Confirmar pagamento</DialogTitle>
+            <DialogDescription>
+              {confirmInst && `Parcela ${confirmInst.installment_number}. Ajuste o valor se o pagamento for diferente do valor exibido.`}
+            </DialogDescription>
+          </DialogHeader>
+          {confirmInst && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="confirm-amount">Valor pago (R$)</Label>
+                <Input
+                  id="confirm-amount"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={confirmAmount}
+                  onChange={(e) => setConfirmAmount(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleConfirmPaid} disabled={confirmInstallment.isPending}>
+              Confirmar pago
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
@@ -322,7 +403,10 @@ const Inscricoes = () => {
                       {expandedId === reg.id && (
                         <TableRow>
                           <TableCell colSpan={6} className="bg-muted/30 px-6 pb-3 pt-0">
-                            <InstallmentsPanel registrationId={reg.id} />
+                            <InstallmentsPanel
+                              registrationId={reg.id}
+                              eventPrice={events?.find((e) => e.id === reg.event_id)?.price ?? null}
+                            />
                           </TableCell>
                         </TableRow>
                       )}

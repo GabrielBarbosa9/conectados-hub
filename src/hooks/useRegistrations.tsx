@@ -191,3 +191,63 @@ export const useDeleteRegistration = () => {
     },
   });
 };
+
+export interface EventRevenueRow {
+  eventId: string;
+  eventTitle: string;
+  revenue: number;
+}
+
+export const useEventRevenue = () => {
+  return useQuery({
+    queryKey: ['event-revenue'],
+    queryFn: async () => {
+      const { data: events, error: eventsError } = await supabase
+        .from('events')
+        .select('id, title, price')
+        .order('event_date', { ascending: false });
+      if (eventsError) throw eventsError;
+
+      const { data: regs, error: regsError } = await supabase
+        .from('registrations')
+        .select('id, event_id, payment_status, payment_mode, installments_total');
+      if (regsError) throw regsError;
+
+      const { data: paidInstallments, error: instError } = await supabase
+        .from('installment_payments')
+        .select('registration_id, amount')
+        .eq('payment_status', 'paid');
+      if (instError) throw instError;
+
+      const eventMap = new Map<string, { title: string; price: number }>();
+      (events || []).forEach((e: { id: string; title: string; price: number | null }) => {
+        eventMap.set(e.id, { title: e.title, price: Number(e.price) || 0 });
+      });
+
+      const revenueByEvent = new Map<string, number>();
+
+      (regs || []).forEach((r: { id: string; event_id: string; payment_status: string; payment_mode: string | null; installments_total: number | null }) => {
+        const eventInfo = eventMap.get(r.event_id);
+        if (!eventInfo) return;
+        const isFull = r.payment_mode === 'full' || (r.installments_total ?? 1) <= 1;
+        if (r.payment_status === 'confirmed' && isFull) {
+          revenueByEvent.set(r.event_id, (revenueByEvent.get(r.event_id) ?? 0) + eventInfo.price);
+        }
+      });
+
+      (paidInstallments || []).forEach((row: { registration_id: string; amount: number }) => {
+        const reg = (regs || []).find((r: { id: string }) => r.id === row.registration_id);
+        if (reg && reg.event_id) {
+          revenueByEvent.set(reg.event_id, (revenueByEvent.get(reg.event_id) ?? 0) + Number(row.amount));
+        }
+      });
+
+      const result: EventRevenueRow[] = (events || []).map((e: { id: string; title: string }) => ({
+        eventId: e.id,
+        eventTitle: e.title,
+        revenue: revenueByEvent.get(e.id) ?? 0,
+      }));
+      return result;
+    },
+  });
+};

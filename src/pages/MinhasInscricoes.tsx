@@ -29,6 +29,7 @@ const InstallmentRow = ({ inst, registrationId, pixKey }: { inst: InstallmentPay
   const fileRef = useRef<HTMLInputElement>(null);
   const uploadProof = useUploadInstallmentProof();
   const [showQRCode, setShowQRCode] = useState(false);
+  const [customAmount, setCustomAmount] = useState('');
   const statusInfo = installmentStatusMap[inst.payment_status] || installmentStatusMap.pending;
   const StatusIcon = statusInfo.icon;
 
@@ -36,68 +37,90 @@ const InstallmentRow = ({ inst, registrationId, pixKey }: { inst: InstallmentPay
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) { toast.error('Arquivo deve ter no máximo 10MB'); return; }
-    uploadProof.mutate({ installmentId: inst.id, registrationId, file });
+    const amountParsed = customAmount ? parseFloat(customAmount.replace(',', '.')) : undefined;
+    const amount = amountParsed != null && !Number.isNaN(amountParsed) && amountParsed >= 0 ? amountParsed : undefined;
+    uploadProof.mutate({ installmentId: inst.id, registrationId, file, amount });
+    e.target.value = '';
   };
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className={`rounded-full p-2 ${inst.payment_status === 'paid' ? 'bg-green-500/10' : inst.payment_status === 'overdue' ? 'bg-destructive/10' : 'bg-yellow-500/10'}`}>
-            <StatusIcon className={`h-4 w-4 shrink-0 ${statusInfo.className}`} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium">Parcela {inst.installment_number}</p>
-            <p className="text-xs text-muted-foreground">
-              R$ {Number(inst.amount).toFixed(2).replace('.', ',')}
-              {inst.due_date && ` · Vence ${format(new Date(inst.due_date + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR })}`}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {inst.payment_status !== 'paid' && (
-            <>
-              {pixKey && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 gap-1.5"
-                  onClick={() => setShowQRCode(true)}
-                >
-                  <QrCode className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">QR Code</span>
-                </Button>
-              )}
-              {inst.proof_url ? (
-                <a href={inst.proof_url} target="_blank" rel="noreferrer">
-                  <Button size="sm" variant="ghost" className="h-8 text-xs">
-                    Ver comprovante
-                  </Button>
-                </a>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="default"
-                  className="h-8 gap-1.5"
-                  disabled={uploadProof.isPending}
-                  onClick={() => fileRef.current?.click()}
-                >
-                  {uploadProof.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-                  <span className="hidden sm:inline">Enviar</span>
-                </Button>
-              )}
-              <input ref={fileRef} type="file" accept="image/*,.pdf" className="hidden" onChange={handleFile} />
-            </>
-          )}
-          {inst.payment_status === 'paid' && inst.payment_date && (
-            <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
-              <CheckCircle className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">
-                {format(new Date(inst.payment_date + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR })}
-              </span>
+      <div className="flex flex-col gap-2 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+        <div className="flex items-center justify-between gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className={`rounded-full p-2 ${inst.payment_status === 'paid' ? 'bg-green-500/10' : inst.payment_status === 'overdue' ? 'bg-destructive/10' : 'bg-yellow-500/10'}`}>
+              <StatusIcon className={`h-4 w-4 shrink-0 ${statusInfo.className}`} />
             </div>
-          )}
+            <div className="min-w-0">
+              <p className="text-sm font-medium">Parcela {inst.installment_number}</p>
+              <p className="text-xs text-muted-foreground">
+                R$ {Number(inst.amount).toFixed(2).replace('.', ',')}
+                {inst.due_date && ` · Vence ${format(new Date(inst.due_date + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR })}`}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {inst.payment_status !== 'paid' && (
+              <>
+                {pixKey && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 gap-1.5"
+                    onClick={() => setShowQRCode(true)}
+                  >
+                    <QrCode className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">QR Code</span>
+                  </Button>
+                )}
+                {inst.proof_url ? (
+                  <a href={inst.proof_url} target="_blank" rel="noreferrer">
+                    <Button size="sm" variant="ghost" className="h-8 text-xs">
+                      Ver comprovante
+                    </Button>
+                  </a>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="h-8 gap-1.5"
+                    disabled={uploadProof.isPending}
+                    onClick={() => fileRef.current?.click()}
+                  >
+                    {uploadProof.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                    <span className="hidden sm:inline">Enviar</span>
+                  </Button>
+                )}
+                <input ref={fileRef} type="file" accept="image/*,.pdf" className="hidden" onChange={handleFile} />
+              </>
+            )}
+            {inst.payment_status === 'paid' && inst.payment_date && (
+              <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+                <CheckCircle className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">
+                  {format(new Date(inst.payment_date + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR })}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
+        {inst.payment_status !== 'paid' && !inst.proof_url && (
+          <div className="flex items-center gap-2 pl-11">
+            <label htmlFor={`amount-${inst.id}`} className="text-xs text-muted-foreground whitespace-nowrap">
+              Valor pago (R$):
+            </label>
+            <input
+              id={`amount-${inst.id}`}
+              type="text"
+              inputMode="decimal"
+              placeholder={Number(inst.amount).toFixed(2).replace('.', ',')}
+              value={customAmount}
+              onChange={(e) => setCustomAmount(e.target.value)}
+              className="w-24 rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            />
+            <span className="text-xs text-muted-foreground">opcional</span>
+          </div>
+        )}
       </div>
 
       {pixKey && (

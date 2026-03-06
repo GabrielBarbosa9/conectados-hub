@@ -4,9 +4,11 @@ import {
   LayoutDashboard,
   Calendar,
   Users,
+  UserCog,
   CheckSquare,
   Heart,
   Images,
+  FileText,
   Settings,
   LogOut,
   Menu,
@@ -40,6 +42,8 @@ const navItems = [
   { href: '/admin/checkin', label: 'Check-in', icon: CheckSquare },
   { href: '/admin/doacoes', label: 'Doações', icon: Heart },
   { href: '/admin/galeria', label: 'Galeria', icon: Images },
+  { href: '/admin/esbocos', label: 'Esboços de pregação', icon: FileText },
+  { href: '/admin/usuarios', label: 'Usuários', icon: UserCog },
   { href: '/admin/configuracoes', label: 'Configurações', icon: Settings },
 ];
 

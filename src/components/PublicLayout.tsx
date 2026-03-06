@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Heart, Images, User, LogIn, ClipboardList, Menu, Settings } from 'lucide-react';
+import { Calendar, Heart, Images, FileText, User, LogIn, ClipboardList, Menu, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -18,6 +18,7 @@ const navLinks = [
     { href: '/eventos', label: 'Eventos', icon: Calendar },
     { href: '/doacoes', label: 'Doações', icon: Heart },
     { href: '/galeria', label: 'Galeria', icon: Images },
+    { href: '/esbocos', label: 'Esboços de pregação', icon: FileText },
 ];
 
 const PublicLayout = ({ children }: PublicLayoutProps) => {

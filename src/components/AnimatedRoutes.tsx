@@ -11,6 +11,7 @@ import Login from "@/pages/Login";
 import Cadastro from "@/pages/Cadastro";
 import Perfil from "@/pages/Perfil";
 import MinhasInscricoes from "@/pages/MinhasInscricoes";
+import Esbocos from "@/pages/Esbocos";
 
 // Admin Pages
 import AdminLogin from "@/pages/admin/Login";
@@ -21,6 +22,8 @@ import AdminCheckin from "@/pages/admin/Checkin";
 import AdminDoacoes from "@/pages/admin/Doacoes";
 import AdminGaleria from "@/pages/admin/Galeria";
 import AdminConfiguracoes from "@/pages/admin/Configuracoes";
+import AdminUsuarios from "@/pages/admin/Usuarios";
+import AdminEsbocos from "@/pages/admin/Esbocos";
 
 // Components
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -51,6 +54,7 @@ export const AnimatedRoutes = () => {
         <Route path="/eventos" element={<PublicLayout><PageTransition><Eventos /></PageTransition></PublicLayout>} />
         <Route path="/doacoes" element={<PublicLayout><PageTransition><Doacoes /></PageTransition></PublicLayout>} />
         <Route path="/galeria" element={<PublicLayout><PageTransition><Galeria /></PageTransition></PublicLayout>} />
+        <Route path="/esbocos" element={<PublicLayout><PageTransition><Esbocos /></PageTransition></PublicLayout>} />
         <Route path="/login" element={<PublicLayout><PageTransition><Login /></PageTransition></PublicLayout>} />
         <Route path="/cadastro" element={<PublicLayout><PageTransition><Cadastro /></PageTransition></PublicLayout>} />
         <Route path="/perfil" element={<PublicLayout><PageTransition><Perfil /></PageTransition></PublicLayout>} />
@@ -64,7 +68,9 @@ export const AnimatedRoutes = () => {
         <Route path="/admin/checkin" element={<PageTransition><ProtectedRoute><AdminCheckin /></ProtectedRoute></PageTransition>} />
         <Route path="/admin/doacoes" element={<PageTransition><ProtectedRoute><AdminDoacoes /></ProtectedRoute></PageTransition>} />
         <Route path="/admin/galeria" element={<PageTransition><ProtectedRoute><AdminGaleria /></ProtectedRoute></PageTransition>} />
+        <Route path="/admin/esbocos" element={<PageTransition><ProtectedRoute><AdminEsbocos /></ProtectedRoute></PageTransition>} />
         <Route path="/admin/configuracoes" element={<PageTransition><ProtectedRoute><AdminConfiguracoes /></ProtectedRoute></PageTransition>} />
+        <Route path="/admin/usuarios" element={<PageTransition><ProtectedRoute><AdminUsuarios /></ProtectedRoute></PageTransition>} />
 
         {/* Catch-all */}
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />

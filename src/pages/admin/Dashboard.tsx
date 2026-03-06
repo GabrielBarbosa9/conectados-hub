@@ -1,18 +1,21 @@
 import AdminLayout from '@/components/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Users, Heart, TrendingUp } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Calendar, Users, Heart, TrendingUp, DollarSign } from 'lucide-react';
 import { useEvents } from '@/hooks/useEvents';
-import { useRegistrations } from '@/hooks/useRegistrations';
+import { useRegistrations, useEventRevenue } from '@/hooks/useRegistrations';
 import { useDonationStats } from '@/hooks/useDonations';
 
 const Dashboard = () => {
   const { data: events } = useEvents();
   const { data: registrations } = useRegistrations();
   const { data: donationStats } = useDonationStats();
+  const { data: eventRevenue, isLoading: loadingRevenue } = useEventRevenue();
 
   const activeEvents = events?.filter(e => e.is_active).length || 0;
   const totalRegistrations = registrations?.length || 0;
   const checkedInCount = registrations?.filter(r => r.checked_in).length || 0;
+  const totalRevenue = eventRevenue?.reduce((sum, row) => sum + row.revenue, 0) ?? 0;
 
   const stats = [
     {
@@ -60,6 +63,46 @@ const Dashboard = () => {
           </Card>
         ))}
       </div>
+
+      <Card className="glass-card mt-6">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-primary" />
+            Arrecadação por evento
+          </CardTitle>
+          {eventRevenue && eventRevenue.length > 0 && (
+            <span className="text-sm font-medium text-muted-foreground">
+              Total: R$ {totalRevenue.toFixed(2)}
+            </span>
+          )}
+        </CardHeader>
+        <CardContent>
+          {loadingRevenue ? (
+            <div className="flex justify-center py-8">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+          ) : !eventRevenue?.length ? (
+            <p className="text-center text-muted-foreground py-6">Nenhum evento com arrecadação no momento.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Evento</TableHead>
+                  <TableHead className="text-right">Arrecadado</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {eventRevenue.map((row) => (
+                  <TableRow key={row.eventId}>
+                    <TableCell className="font-medium">{row.eventTitle}</TableCell>
+                    <TableCell className="text-right">R$ {row.revenue.toFixed(2)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </AdminLayout>
   );
 };
