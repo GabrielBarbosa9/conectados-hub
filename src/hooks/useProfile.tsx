@@ -99,9 +99,9 @@ export const useUpdateProfile = () => {
         .maybeSingle();
 
       if (existing) {
-        const { data: updated, error } = await supabase
+      const { data: updated, error } = await supabase
           .from('profiles')
-          .update(data)
+          .update(data as any)
           .eq('user_id', userId)
           .select()
           .single();
@@ -110,7 +110,7 @@ export const useUpdateProfile = () => {
       } else {
         const { data: inserted, error } = await supabase
           .from('profiles')
-          .insert({ user_id: userId, ...data })
+          .insert({ user_id: userId, ...data } as any)
           .select()
           .single();
         if (error) throw error;
@@ -168,13 +168,13 @@ export const useUploadAvatar = () => {
       if (existing) {
         const { error: updateError } = await supabase
           .from('profiles')
-          .update({ avatar_url: publicUrl })
+          .update({ avatar_url: publicUrl } as any)
           .eq('user_id', userId);
         if (updateError) throw updateError;
       } else {
         const { error: insertError } = await supabase
           .from('profiles')
-          .insert({ user_id: userId, avatar_url: publicUrl });
+          .insert({ user_id: userId, avatar_url: publicUrl } as any);
         if (insertError) throw insertError;
       }
 
@@ -217,9 +217,9 @@ export const useUpdateProfileByAdmin = () => {
         .maybeSingle();
 
       if (existing) {
-        const { data: updated, error } = await supabase
+      const { data: updated, error } = await supabase
           .from('profiles')
-          .update(data)
+          .update(data as any)
           .eq('user_id', userId)
           .select()
           .single();
@@ -228,7 +228,7 @@ export const useUpdateProfileByAdmin = () => {
       } else {
         const { data: inserted, error } = await supabase
           .from('profiles')
-          .insert({ user_id: userId, ...data })
+          .insert({ user_id: userId, ...data } as any)
           .select()
           .single();
         if (error) throw error;

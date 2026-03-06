@@ -22,12 +22,12 @@ export const useInstallments = (registrationId?: string) => {
     queryFn: async () => {
       if (!registrationId) return [];
       const { data, error } = await supabase
-        .from('installment_payments')
+        .from('installment_payments' as any)
         .select('*')
         .eq('registration_id', registrationId)
         .order('installment_number', { ascending: true });
       if (error) throw error;
-      return data as InstallmentPayment[];
+      return data as unknown as InstallmentPayment[];
     },
     enabled: !!registrationId,
   });
@@ -47,12 +47,12 @@ export const useAllInstallmentsByEvent = (eventId?: string) => {
 
       const ids = registrations.map((r) => r.id);
       const { data, error } = await supabase
-        .from('installment_payments')
+        .from('installment_payments' as any)
         .select('*')
         .in('registration_id', ids)
         .order('due_date', { ascending: true });
       if (error) throw error;
-      return data as InstallmentPayment[];
+      return data as unknown as InstallmentPayment[];
     },
     enabled: !!eventId,
   });
@@ -83,7 +83,7 @@ export const useCreateInstallments = () => {
       }));
 
       const { data, error } = await supabase
-        .from('installment_payments')
+        .from('installment_payments' as any)
         .insert(installments)
         .select();
       if (error) throw error;
@@ -133,7 +133,7 @@ export const useUploadInstallmentProof = () => {
         updatePayload.amount = amount;
       }
       const { error: updateError } = await supabase
-        .from('installment_payments')
+        .from('installment_payments' as any)
         .update(updatePayload)
         .eq('id', installmentId);
       if (updateError) throw updateError;
@@ -160,17 +160,17 @@ async function recalcPendingInstallments(
   eventPrice: number
 ): Promise<void> {
   const { data: all, error: fetchError } = await supabase
-    .from('installment_payments')
+    .from('installment_payments' as any)
     .select('id, amount, payment_status')
     .eq('registration_id', registrationId)
     .order('installment_number', { ascending: true });
   if (fetchError) throw fetchError;
   if (!all?.length) return;
 
-  const paidTotal = (all as InstallmentPayment[])
+  const paidTotal = (all as unknown as InstallmentPayment[])
     .filter((i) => i.payment_status === 'paid')
     .reduce((sum, i) => sum + Number(i.amount), 0);
-  const pending = (all as InstallmentPayment[]).filter(
+  const pending = (all as unknown as InstallmentPayment[]).filter(
     (i) => i.payment_status !== 'paid'
   );
   if (pending.length === 0) return;
@@ -184,7 +184,7 @@ async function recalcPendingInstallments(
 
   for (let i = 0; i < pending.length; i++) {
     const { error: updateError } = await supabase
-      .from('installment_payments')
+      .from('installment_payments' as any)
       .update({ amount: amounts[i] })
       .eq('id', pending[i].id);
     if (updateError) throw updateError;
@@ -216,7 +216,7 @@ export const useConfirmInstallment = () => {
         }
       }
       const { data, error } = await supabase
-        .from('installment_payments')
+        .from('installment_payments' as any)
         .update(updateData)
         .eq('id', installmentId)
         .select()

@@ -80,8 +80,8 @@ export const useUserEventRegistration = (eventId?: string, userId?: string) => {
   return useQuery({
     queryKey: ['user-event-registration', eventId, userId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('registrations')
+      const { data, error } = await (supabase
+        .from('registrations') as any)
         .select('id')
         .eq('event_id', eventId!)
         .eq('user_id', userId!)
@@ -210,11 +210,11 @@ export const useEventRevenue = () => {
 
       const { data: regs, error: regsError } = await supabase
         .from('registrations')
-        .select('id, event_id, payment_status, payment_mode, installments_total');
+        .select('id, event_id, payment_status');
       if (regsError) throw regsError;
 
       const { data: paidInstallments, error: instError } = await supabase
-        .from('installment_payments')
+        .from('installment_payments' as any)
         .select('registration_id, amount')
         .eq('payment_status', 'paid');
       if (instError) throw instError;
@@ -226,17 +226,16 @@ export const useEventRevenue = () => {
 
       const revenueByEvent = new Map<string, number>();
 
-      (regs || []).forEach((r: { id: string; event_id: string; payment_status: string; payment_mode: string | null; installments_total: number | null }) => {
+      (regs || []).forEach((r: any) => {
         const eventInfo = eventMap.get(r.event_id);
         if (!eventInfo) return;
-        const isFull = r.payment_mode === 'full' || (r.installments_total ?? 1) <= 1;
-        if (r.payment_status === 'confirmed' && isFull) {
+        if (r.payment_status === 'confirmed') {
           revenueByEvent.set(r.event_id, (revenueByEvent.get(r.event_id) ?? 0) + eventInfo.price);
         }
       });
 
-      (paidInstallments || []).forEach((row: { registration_id: string; amount: number }) => {
-        const reg = (regs || []).find((r: { id: string }) => r.id === row.registration_id);
+      (paidInstallments || []).forEach((row: any) => {
+        const reg = (regs || []).find((r: any) => r.id === row.registration_id);
         if (reg && reg.event_id) {
           revenueByEvent.set(reg.event_id, (revenueByEvent.get(reg.event_id) ?? 0) + Number(row.amount));
         }
