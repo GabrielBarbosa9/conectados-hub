@@ -174,7 +174,7 @@ export const useUploadAvatar = () => {
       } else {
         const { error: insertError } = await supabase
           .from('profiles')
-          .insert({ user_id: userId, avatar_url: publicUrl });
+          .insert({ user_id: userId, avatar_url: publicUrl } as any);
         if (insertError) throw insertError;
       }
 
