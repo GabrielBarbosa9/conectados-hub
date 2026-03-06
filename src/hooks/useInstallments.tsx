@@ -160,7 +160,7 @@ async function recalcPendingInstallments(
   eventPrice: number
 ): Promise<void> {
   const { data: all, error: fetchError } = await supabase
-    .from('installment_payments')
+    .from('installment_payments' as any)
     .select('id, amount, payment_status')
     .eq('registration_id', registrationId)
     .order('installment_number', { ascending: true });
