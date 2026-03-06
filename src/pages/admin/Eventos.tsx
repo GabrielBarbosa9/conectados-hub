@@ -26,6 +26,8 @@ const Eventos = () => {
     description: '',
     event_date: '',
     event_time: '',
+    end_date: '',
+    end_time: '',
     location: '',
     max_capacity: '',
     is_active: true,
@@ -44,6 +46,8 @@ const Eventos = () => {
       description: '',
       event_date: '',
       event_time: '',
+      end_date: '',
+      end_time: '',
       location: '',
       max_capacity: '',
       is_active: true,
@@ -65,6 +69,8 @@ const Eventos = () => {
       description: event.description || '',
       event_date: event.event_date,
       event_time: event.event_time || '',
+      end_date: event.end_date || '',
+      end_time: event.end_time || '',
       location: event.location || '',
       max_capacity: event.max_capacity?.toString() || '',
       is_active: event.is_active,
@@ -87,6 +93,8 @@ const Eventos = () => {
       description: formData.description || undefined,
       event_date: formData.event_date,
       event_time: formData.event_time || undefined,
+      end_date: formData.end_date || null,
+      end_time: formData.end_time || null,
       location: formData.location || undefined,
       max_capacity: formData.max_capacity ? parseInt(formData.max_capacity) : undefined,
       is_active: formData.is_active,
@@ -159,7 +167,7 @@ const Eventos = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="event_date">Data *</Label>
+                  <Label htmlFor="event_date">Data de Início *</Label>
                   <Input
                     id="event_date"
                     type="date"
@@ -169,12 +177,33 @@ const Eventos = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="event_time">Horário</Label>
+                  <Label htmlFor="event_time">Horário de Início</Label>
                   <Input
                     id="event_time"
                     type="time"
                     value={formData.event_time}
                     onChange={(e) => setFormData({ ...formData, event_time: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="end_date">Data de Encerramento</Label>
+                  <Input
+                    id="end_date"
+                    type="date"
+                    value={formData.end_date}
+                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end_time">Horário de Encerramento</Label>
+                  <Input
+                    id="end_time"
+                    type="time"
+                    value={formData.end_time}
+                    onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
                   />
                 </div>
               </div>
@@ -329,6 +358,9 @@ const Eventos = () => {
                   <p className="text-sm text-muted-foreground">
                     {format(new Date(event.event_date), 'dd/MM/yyyy')}
                     {event.event_time && ` às ${event.event_time.slice(0, 5)}`}
+                    {event.end_date && (
+                      <> — {format(new Date(event.end_date), 'dd/MM/yyyy')}{event.end_time && ` às ${event.end_time.slice(0, 5)}`}</>
+                    )}
                     {' · '}
                     {paymentLabel(event.payment_method)}
                     {event.price ? ` · R$ ${Number(event.price).toFixed(2)}` : ''}

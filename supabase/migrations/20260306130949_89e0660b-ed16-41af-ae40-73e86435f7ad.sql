@@ -1,0 +1,1 @@
+ALTER TABLE public.events ADD COLUMN end_date date NULL, ADD COLUMN end_time time without time zone NULL;

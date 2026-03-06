@@ -9,6 +9,8 @@ export interface Event {
   description: string | null;
   event_date: string;
   event_time: string | null;
+  end_date: string | null;
+  end_time: string | null;
   location: string | null;
   max_capacity: number | null;
   is_active: boolean;
@@ -38,6 +40,8 @@ export interface CreateEventData {
   description?: string;
   event_date: string;
   event_time?: string;
+  end_date?: string | null;
+  end_time?: string | null;
   location?: string;
   max_capacity?: number;
   is_active?: boolean;
