@@ -110,7 +110,7 @@ export const useUpdateProfile = () => {
       } else {
         const { data: inserted, error } = await supabase
           .from('profiles')
-          .insert({ user_id: userId, ...data })
+          .insert({ user_id: userId, ...data } as any)
           .select()
           .single();
         if (error) throw error;
