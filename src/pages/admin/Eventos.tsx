@@ -46,6 +46,8 @@ const Eventos = () => {
       description: '',
       event_date: '',
       event_time: '',
+      end_date: '',
+      end_time: '',
       location: '',
       max_capacity: '',
       is_active: true,
