@@ -167,10 +167,10 @@ async function recalcPendingInstallments(
   if (fetchError) throw fetchError;
   if (!all?.length) return;
 
-  const paidTotal = (all as InstallmentPayment[])
+  const paidTotal = (all as unknown as InstallmentPayment[])
     .filter((i) => i.payment_status === 'paid')
     .reduce((sum, i) => sum + Number(i.amount), 0);
-  const pending = (all as InstallmentPayment[]).filter(
+  const pending = (all as unknown as InstallmentPayment[]).filter(
     (i) => i.payment_status !== 'paid'
   );
   if (pending.length === 0) return;
