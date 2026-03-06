@@ -52,7 +52,7 @@ export const useAllInstallmentsByEvent = (eventId?: string) => {
         .in('registration_id', ids)
         .order('due_date', { ascending: true });
       if (error) throw error;
-      return data as InstallmentPayment[];
+      return data as unknown as InstallmentPayment[];
     },
     enabled: !!eventId,
   });
