@@ -69,6 +69,8 @@ const Eventos = () => {
       description: event.description || '',
       event_date: event.event_date,
       event_time: event.event_time || '',
+      end_date: event.end_date || '',
+      end_time: event.end_time || '',
       location: event.location || '',
       max_capacity: event.max_capacity?.toString() || '',
       is_active: event.is_active,
