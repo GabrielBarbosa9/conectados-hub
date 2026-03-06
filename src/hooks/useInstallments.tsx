@@ -27,7 +27,7 @@ export const useInstallments = (registrationId?: string) => {
         .eq('registration_id', registrationId)
         .order('installment_number', { ascending: true });
       if (error) throw error;
-      return data as InstallmentPayment[];
+      return data as unknown as InstallmentPayment[];
     },
     enabled: !!registrationId,
   });
