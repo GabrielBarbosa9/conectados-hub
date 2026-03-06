@@ -99,9 +99,9 @@ export const useUpdateProfile = () => {
         .maybeSingle();
 
       if (existing) {
-        const { data: updated, error } = await supabase
+      const { data: updated, error } = await supabase
           .from('profiles')
-          .update(data)
+          .update(data as any)
           .eq('user_id', userId)
           .select()
           .single();
