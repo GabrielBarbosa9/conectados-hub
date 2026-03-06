@@ -167,7 +167,7 @@ const Eventos = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="event_date">Data *</Label>
+                  <Label htmlFor="event_date">Data de Início *</Label>
                   <Input
                     id="event_date"
                     type="date"
@@ -177,12 +177,33 @@ const Eventos = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="event_time">Horário</Label>
+                  <Label htmlFor="event_time">Horário de Início</Label>
                   <Input
                     id="event_time"
                     type="time"
                     value={formData.event_time}
                     onChange={(e) => setFormData({ ...formData, event_time: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="end_date">Data de Encerramento</Label>
+                  <Input
+                    id="end_date"
+                    type="date"
+                    value={formData.end_date}
+                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end_time">Horário de Encerramento</Label>
+                  <Input
+                    id="end_time"
+                    type="time"
+                    value={formData.end_time}
+                    onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
                   />
                 </div>
               </div>
