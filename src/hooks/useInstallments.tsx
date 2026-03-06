@@ -133,7 +133,7 @@ export const useUploadInstallmentProof = () => {
         updatePayload.amount = amount;
       }
       const { error: updateError } = await supabase
-        .from('installment_payments')
+        .from('installment_payments' as any)
         .update(updatePayload)
         .eq('id', installmentId);
       if (updateError) throw updateError;
