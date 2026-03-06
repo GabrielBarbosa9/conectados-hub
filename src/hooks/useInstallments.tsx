@@ -47,7 +47,7 @@ export const useAllInstallmentsByEvent = (eventId?: string) => {
 
       const ids = registrations.map((r) => r.id);
       const { data, error } = await supabase
-        .from('installment_payments')
+        .from('installment_payments' as any)
         .select('*')
         .in('registration_id', ids)
         .order('due_date', { ascending: true });
