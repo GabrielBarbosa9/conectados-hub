@@ -226,17 +226,16 @@ export const useEventRevenue = () => {
 
       const revenueByEvent = new Map<string, number>();
 
-      (regs || []).forEach((r: { id: string; event_id: string; payment_status: string; payment_mode: string | null; installments_total: number | null }) => {
+      (regs || []).forEach((r: any) => {
         const eventInfo = eventMap.get(r.event_id);
         if (!eventInfo) return;
-        const isFull = r.payment_mode === 'full' || (r.installments_total ?? 1) <= 1;
-        if (r.payment_status === 'confirmed' && isFull) {
+        if (r.payment_status === 'confirmed') {
           revenueByEvent.set(r.event_id, (revenueByEvent.get(r.event_id) ?? 0) + eventInfo.price);
         }
       });
 
-      (paidInstallments || []).forEach((row: { registration_id: string; amount: number }) => {
-        const reg = (regs || []).find((r: { id: string }) => r.id === row.registration_id);
+      (paidInstallments || []).forEach((row: any) => {
+        const reg = (regs || []).find((r: any) => r.id === row.registration_id);
         if (reg && reg.event_id) {
           revenueByEvent.set(reg.event_id, (revenueByEvent.get(reg.event_id) ?? 0) + Number(row.amount));
         }
