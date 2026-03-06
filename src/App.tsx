@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "next-themes";
 import { AnimatedRoutes } from "@/components/AnimatedRoutes";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <AnimatedRoutes />
+            <PWAInstallPrompt />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
