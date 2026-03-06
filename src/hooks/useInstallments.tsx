@@ -83,7 +83,7 @@ export const useCreateInstallments = () => {
       }));
 
       const { data, error } = await supabase
-        .from('installment_payments')
+        .from('installment_payments' as any)
         .insert(installments)
         .select();
       if (error) throw error;
