@@ -93,6 +93,8 @@ const Eventos = () => {
       description: formData.description || undefined,
       event_date: formData.event_date,
       event_time: formData.event_time || undefined,
+      end_date: formData.end_date || null,
+      end_time: formData.end_time || null,
       location: formData.location || undefined,
       max_capacity: formData.max_capacity ? parseInt(formData.max_capacity) : undefined,
       is_active: formData.is_active,
