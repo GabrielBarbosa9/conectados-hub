@@ -16,14 +16,10 @@ const Galeria = () => {
 
   return (
     <div className="min-h-screen bg-background px-4 py-8">
-      {/* Theme Toggle - Fixed */}
-      <div className="fixed top-4 right-4 z-50">
-        <ThemeToggle />
-      </div>
 
       <div className="mx-auto max-w-6xl">
         {/* Navigation */}
-        {selectedAlbumId ? (
+        {selectedAlbumId && (
           <button
             onClick={() => setSelectedAlbumId(null)}
             className="mb-8 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground"
@@ -31,17 +27,12 @@ const Galeria = () => {
             <ArrowLeft className="h-4 w-4" />
             Voltar para álbuns
           </button>
-        ) : (
-          <Link to="/" className="mb-8 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" />
-            Voltar
-          </Link>
         )}
-        
+
         <h1 className="mb-8 text-4xl font-bold">
           {selectedAlbum ? selectedAlbum.title : 'Galeria'}
         </h1>
-        
+
         {/* Albums View */}
         {!selectedAlbumId && (
           <>

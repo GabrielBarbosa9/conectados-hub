@@ -1,17 +1,26 @@
 import { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Users, 
-  CheckSquare, 
-  Heart, 
-  Images, 
+import {
+  LayoutDashboard,
+  Calendar,
+  Users,
+  CheckSquare,
+  Heart,
+  Images,
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  ArrowLeft
 } from 'lucide-react';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
@@ -58,7 +67,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -66,7 +75,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 transform border-r border-border bg-sidebar-background transition-transform lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-50 w-64 transform border-r border-border bg-sidebar transition-transform lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex h-16 items-center justify-between px-6">
@@ -75,8 +84,16 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
             <X className="h-5 w-5" />
           </button>
         </div>
-        
+
         <nav className="space-y-1 px-3 py-4">
+          <Link
+            to="/"
+            onClick={() => setSidebarOpen(false)}
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent/50 mb-4"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar ao Site
+          </Link>
           {navItems.map((item) => {
             const isActive = location.pathname === item.href;
             return (
@@ -86,8 +103,8 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                  isActive 
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                 )}
               >
@@ -97,12 +114,12 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
             );
           })}
         </nav>
-        
+
         <div className="absolute bottom-0 left-0 right-0 border-t border-sidebar-border p-4">
           <div className="flex items-center justify-between">
-            <Button 
-              variant="ghost" 
-              className="flex-1 justify-start gap-3" 
+            <Button
+              variant="ghost"
+              className="flex-1 justify-start gap-3"
               onClick={handleSignOut}
             >
               <LogOut className="h-4 w-4" />
@@ -116,6 +133,24 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
       {/* Main Content */}
       <main className="lg:pl-64">
         <div className="p-6">
+          <Breadcrumb className="mb-4">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to="/admin/dashboard">Admin</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              {location.pathname !== '/admin/dashboard' && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{title}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              )}
+            </BreadcrumbList>
+          </Breadcrumb>
+
           <h1 className="mb-6 text-2xl font-bold">{title}</h1>
           {children}
         </div>

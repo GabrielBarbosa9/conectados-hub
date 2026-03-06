@@ -24,55 +24,23 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Bar - Fixed */}
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-        {user ? (
-          <>
-            <Link to="/minhas-inscricoes">
-              <Button variant="outline" size="sm" className="gap-2">
-                <ClipboardList className="h-4 w-4" />
-                <span className="hidden sm:inline">Inscrições</span>
-              </Button>
-            </Link>
-            <Link to="/perfil">
-              <Button variant="outline" size="sm" className="gap-2">
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" />
-                ) : (
-                  <User className="h-4 w-4" />
-                )}
-                <span className="hidden sm:inline">{profile?.name?.split(' ')[0] || 'Perfil'}</span>
-              </Button>
-            </Link>
-          </>
-        ) : (
-          <Link to="/login">
-            <Button variant="outline" size="sm" className="gap-2">
-              <LogIn className="h-4 w-4" />
-              Entrar
-            </Button>
-          </Link>
-        )}
-        <ThemeToggle />
-      </div>
-
       {/* Hero Section */}
       <section className="relative flex min-h-screen flex-col items-center justify-center px-4 py-20">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
-        
+
         <div className="relative z-10 text-center animate-fade-in">
           <div className="mb-8">
-            <img 
-              src={logoConectados} 
-              alt="Conectados" 
+            <img
+              src={logoConectados}
+              alt="Conectados"
               className="h-24 md:h-32 mx-auto"
             />
           </div>
-          
+
           <p className="mb-12 max-w-2xl text-lg md:text-xl text-muted-foreground">
             {settings?.about_text || 'Uma geração conectada com Deus e com pessoas'}
           </p>
-          
+
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link to="/eventos">
               <Button size="lg" className="gap-2 subtle-glow">
@@ -80,14 +48,14 @@ const Index = () => {
                 Eventos
               </Button>
             </Link>
-            
+
             <Link to="/doacoes">
               <Button size="lg" variant="outline" className="gap-2">
                 <Heart className="h-5 w-5" />
                 Doar
               </Button>
             </Link>
-            
+
             <Link to="/galeria">
               <Button size="lg" variant="outline" className="gap-2">
                 <Images className="h-5 w-5" />
@@ -109,7 +77,7 @@ const Index = () => {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
               {recentPhotos.slice(0, 6).map((photo) => (
                 <Link
@@ -140,7 +108,7 @@ const Index = () => {
       <section className="border-t border-border bg-card/50 px-4 py-16">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="mb-8 text-2xl font-semibold">Conecte-se conosco</h2>
-          
+
           <div className="flex flex-wrap items-center justify-center gap-4">
             {settings?.instagram_url && (
               <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer">
@@ -150,7 +118,7 @@ const Index = () => {
                 </Button>
               </a>
             )}
-            
+
             {settings?.whatsapp_number && (
               <Button variant="outline" size="lg" className="gap-2" onClick={openWhatsApp}>
                 <MessageCircle className="h-5 w-5" />
@@ -172,15 +140,6 @@ const Index = () => {
         </button>
       )}
 
-      {/* Footer */}
-      <footer className="border-t border-border px-4 py-8">
-        <div className="mx-auto max-w-4xl text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Conectados. Todos os direitos reservados.</p>
-          <Link to="/admin/login" className="mt-2 inline-block text-xs hover:text-foreground">
-            Área Administrativa
-          </Link>
-        </div>
-      </footer>
     </div>
   );
 };

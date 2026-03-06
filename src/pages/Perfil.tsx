@@ -13,9 +13,9 @@ import AvatarUpload from '@/components/AvatarUpload';
 import { toast } from 'sonner';
 
 const ESTADOS_BR = [
-  'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA',
-  'MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN',
-  'RS','RO','RR','SC','SP','SE','TO',
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
+  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
+  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
 ];
 
 const Perfil = () => {
@@ -106,11 +106,7 @@ const Perfil = () => {
   return (
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="mx-auto max-w-xl">
-        <div className="mb-6 flex items-center justify-between">
-          <Link to="/eventos" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-            Voltar
-          </Link>
+        <div className="mb-6 flex items-end justify-end">
           <Button variant="ghost" size="sm" onClick={handleSignOut}>
             Sair
           </Button>

@@ -56,7 +56,7 @@ const EventCard = ({ event, onRegister }: { event: Event; onRegister: (event: Ev
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center justify-between text-sm">
           {event.max_capacity && (
             <div className="flex items-center gap-2">
@@ -68,9 +68,9 @@ const EventCard = ({ event, onRegister }: { event: Event; onRegister: (event: Ev
           )}
           <span className="font-semibold text-primary">{paymentLabel()}</span>
         </div>
-        
-        <Button 
-          className="w-full" 
+
+        <Button
+          className="w-full"
           disabled={isFull}
           onClick={() => onRegister(event)}
         >
@@ -128,6 +128,12 @@ const Eventos = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEvent) return;
+
+    if (!user) {
+      toast.error('Você precisa fazer login para se inscrever em eventos.');
+      navigate('/login');
+      return;
+    }
 
     if (isPaid && selectedEvent.accepts_credit_card && !paymentResult) {
       toast.error('Selecione a forma de pagamento.');
@@ -195,128 +201,11 @@ const Eventos = () => {
     }
   };
 
-  const RegistrationForm = () => (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Nome completo *</Label>
-        <Input
-          id="name"
-          required
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="whatsapp">WhatsApp *</Label>
-        <Input
-          id="whatsapp"
-          required
-          placeholder="(00) 00000-0000"
-          value={formData.whatsapp}
-          onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="email">E-mail</Label>
-        <Input
-          id="email"
-          type="email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="age">Idade</Label>
-        <Input
-          id="age"
-          type="number"
-          value={formData.age}
-          onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-        />
-      </div>
-      
-      {customFields?.map((field) => (
-        <div key={field.id} className="space-y-2">
-          <Label htmlFor={field.id}>
-            {field.field_name} {field.is_required && '*'}
-          </Label>
-          {field.field_type === 'select' && Array.isArray(field.options) ? (
-            <Select
-              value={formData.customFields[field.field_name] || ''}
-              onValueChange={(v) => setFormData({
-                ...formData,
-                customFields: { ...formData.customFields, [field.field_name]: v }
-              })}
-            >
-              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-              <SelectContent>
-                {(field.options as string[]).map((opt) => (
-                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <Input
-              id={field.id}
-              type={field.field_type === 'number' ? 'number' : 'text'}
-              required={field.is_required}
-              value={formData.customFields[field.field_name] || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                customFields: { ...formData.customFields, [field.field_name]: e.target.value }
-              })}
-            />
-          )}
-        </div>
-      ))}
-
-      {isPaid && selectedEvent && eventPixKey && (
-        <PaymentSelector
-          event={selectedEvent}
-          pixKey={eventPixKey}
-          onChange={setPaymentResult}
-        />
-      )}
-
-      {existingRegistration && user && (
-        <div className="rounded-md bg-green-500/10 border border-green-500/30 p-3 text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
-          <span>
-            Você já está inscrito neste evento.{' '}
-            <Link to="/minhas-inscricoes" className="text-primary hover:underline font-medium">Ver minhas inscrições</Link>
-          </span>
-        </div>
-      )}
-
-      {!user && (
-        <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground flex items-center gap-2">
-          <LogIn className="h-4 w-4 shrink-0" />
-          <span>
-            <Link to="/login" className="text-primary hover:underline font-medium">Faça login</Link>
-            {' '}para acompanhar suas inscrições e pagamentos.
-          </span>
-        </div>
-      )}
-
-      <Button type="submit" className="w-full" disabled={createRegistration.isPending || createInstallments.isPending || !!existingRegistration}>
-        {createRegistration.isPending || createInstallments.isPending ? 'Enviando...' : existingRegistration ? 'Já inscrito' : 'Confirmar Inscrição'}
-      </Button>
-    </form>
-  );
-
   return (
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="mx-auto max-w-4xl">
-        <Link to="/" className="mb-8 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" />
-          Voltar
-        </Link>
-        
         <h1 className="mb-8 text-4xl font-bold">Eventos</h1>
-        
+
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -339,7 +228,115 @@ const Eventos = () => {
               <DrawerTitle>Inscrição - {selectedEvent?.title}</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-8 overflow-y-auto">
-              <RegistrationForm />
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome completo *</Label>
+                  <Input
+                    id="name"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp">WhatsApp *</Label>
+                  <Input
+                    id="whatsapp"
+                    required
+                    placeholder="(00) 00000-0000"
+                    value={formData.whatsapp}
+                    onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">E-mail</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="age">Idade</Label>
+                  <Input
+                    id="age"
+                    type="number"
+                    value={formData.age}
+                    onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                  />
+                </div>
+
+                {customFields?.map((field) => (
+                  <div key={field.id} className="space-y-2">
+                    <Label htmlFor={field.id}>
+                      {field.field_name} {field.is_required && '*'}
+                    </Label>
+                    {field.field_type === 'select' && Array.isArray(field.options) ? (
+                      <Select
+                        value={formData.customFields[field.field_name] || ''}
+                        onValueChange={(v) => setFormData({
+                          ...formData,
+                          customFields: { ...formData.customFields, [field.field_name]: v }
+                        })}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                        <SelectContent>
+                          {(field.options as string[]).map((opt) => (
+                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        id={field.id}
+                        type={field.field_type === 'number' ? 'number' : 'text'}
+                        required={field.is_required}
+                        value={formData.customFields[field.field_name] || ''}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          customFields: { ...formData.customFields, [field.field_name]: e.target.value }
+                        })}
+                      />
+                    )}
+                  </div>
+                ))}
+
+                {isPaid && selectedEvent && eventPixKey && (
+                  <PaymentSelector
+                    event={selectedEvent}
+                    pixKey={eventPixKey}
+                    onChange={setPaymentResult}
+                  />
+                )}
+
+                {existingRegistration && user && (
+                  <div className="rounded-md bg-green-500/10 border border-green-500/30 p-3 text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    <span>
+                      Você já está inscrito neste evento.{' '}
+                      <Link to="/minhas-inscricoes" className="text-primary hover:underline font-medium">Ver minhas inscrições</Link>
+                    </span>
+                  </div>
+                )}
+
+                {!user && (
+                  <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground flex items-center gap-2">
+                    <LogIn className="h-4 w-4 shrink-0" />
+                    <span>
+                      <Link to="/login" className="text-primary hover:underline font-medium">Faça login</Link>
+                      {' '}para acompanhar suas inscrições e pagamentos.
+                    </span>
+                  </div>
+                )}
+
+                <Button type="submit" className="w-full" disabled={!user || createRegistration.isPending || createInstallments.isPending || !!existingRegistration}>
+                  {!user ? 'Faça login para se inscrever' : createRegistration.isPending || createInstallments.isPending ? 'Enviando...' : existingRegistration ? 'Já inscrito' : 'Confirmar Inscrição'}
+                </Button>
+              </form>
             </div>
           </DrawerContent>
         </Drawer>
@@ -349,7 +346,115 @@ const Eventos = () => {
             <DialogHeader>
               <DialogTitle>Inscrição - {selectedEvent?.title}</DialogTitle>
             </DialogHeader>
-            <RegistrationForm />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome completo *</Label>
+                <Input
+                  id="name"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp">WhatsApp *</Label>
+                <Input
+                  id="whatsapp"
+                  required
+                  placeholder="(00) 00000-0000"
+                  value={formData.whatsapp}
+                  onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">E-mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="age">Idade</Label>
+                <Input
+                  id="age"
+                  type="number"
+                  value={formData.age}
+                  onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                />
+              </div>
+
+              {customFields?.map((field) => (
+                <div key={field.id} className="space-y-2">
+                  <Label htmlFor={field.id}>
+                    {field.field_name} {field.is_required && '*'}
+                  </Label>
+                  {field.field_type === 'select' && Array.isArray(field.options) ? (
+                    <Select
+                      value={formData.customFields[field.field_name] || ''}
+                      onValueChange={(v) => setFormData({
+                        ...formData,
+                        customFields: { ...formData.customFields, [field.field_name]: v }
+                      })}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                      <SelectContent>
+                        {(field.options as string[]).map((opt) => (
+                          <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id={field.id}
+                      type={field.field_type === 'number' ? 'number' : 'text'}
+                      required={field.is_required}
+                      value={formData.customFields[field.field_name] || ''}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        customFields: { ...formData.customFields, [field.field_name]: e.target.value }
+                      })}
+                    />
+                  )}
+                </div>
+              ))}
+
+              {isPaid && selectedEvent && eventPixKey && (
+                <PaymentSelector
+                  event={selectedEvent}
+                  pixKey={eventPixKey}
+                  onChange={setPaymentResult}
+                />
+              )}
+
+              {existingRegistration && user && (
+                <div className="rounded-md bg-green-500/10 border border-green-500/30 p-3 text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  <span>
+                    Você já está inscrito neste evento.{' '}
+                    <Link to="/minhas-inscricoes" className="text-primary hover:underline font-medium">Ver minhas inscrições</Link>
+                  </span>
+                </div>
+              )}
+
+              {!user && (
+                <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground flex items-center gap-2">
+                  <LogIn className="h-4 w-4 shrink-0" />
+                  <span>
+                    <Link to="/login" className="text-primary hover:underline font-medium">Faça login</Link>
+                    {' '}para acompanhar suas inscrições e pagamentos.
+                  </span>
+                </div>
+              )}
+
+              <Button type="submit" className="w-full" disabled={!user || createRegistration.isPending || createInstallments.isPending || !!existingRegistration}>
+                {!user ? 'Faça login para se inscrever' : createRegistration.isPending || createInstallments.isPending ? 'Enviando...' : existingRegistration ? 'Já inscrito' : 'Confirmar Inscrição'}
+              </Button>
+            </form>
           </DialogContent>
         </Dialog>
       )}

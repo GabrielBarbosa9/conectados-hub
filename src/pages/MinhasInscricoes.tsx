@@ -99,7 +99,7 @@ const InstallmentRow = ({ inst, registrationId, pixKey }: { inst: InstallmentPay
           )}
         </div>
       </div>
-      
+
       {pixKey && (
         <PixQRCodeDialog
           open={showQRCode}
@@ -151,7 +151,7 @@ const RegistrationCard = ({ reg, eventTitle, event, pixKey }: { reg: Registratio
           </Button>
         </div>
       </CardHeader>
-      
+
       {showEventDetails && event && (
         <div className="px-6 pb-3 space-y-2 border-t border-border/50 pt-3 bg-muted/20">
           <div className="grid grid-cols-2 gap-3 text-sm">
@@ -187,7 +187,7 @@ const RegistrationCard = ({ reg, eventTitle, event, pixKey }: { reg: Registratio
           )}
         </div>
       )}
-      
+
       <CardContent className="space-y-4 pt-3">
         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
           {reg.payment_type === 'pix' && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />PIX</span>}
@@ -218,13 +218,13 @@ const RegistrationCard = ({ reg, eventTitle, event, pixKey }: { reg: Registratio
                 <span className="text-muted-foreground">{totalPaid}/{totalInstallments} pagas</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
             </div>
-            
+
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
@@ -233,7 +233,7 @@ const RegistrationCard = ({ reg, eventTitle, event, pixKey }: { reg: Registratio
               <span>{expanded ? 'Ocultar' : 'Ver'} parcelas</span>
               {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
-            
+
             {expanded && (
               <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
                 {installments.map((inst) => (
@@ -276,15 +276,6 @@ const MinhasInscricoes = () => {
   return (
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="mx-auto max-w-3xl">
-        <div className="mb-6 flex items-center justify-between">
-          <Link to="/eventos" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-            Voltar
-          </Link>
-          <Link to="/perfil">
-            <Button variant="outline" size="sm">Meu perfil</Button>
-          </Link>
-        </div>
 
         <h1 className="mb-2 text-3xl font-bold">Minhas inscrições</h1>
         <p className="mb-8 text-muted-foreground">Acompanhe suas inscrições e envie comprovantes de pagamento</p>

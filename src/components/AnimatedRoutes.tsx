@@ -24,15 +24,16 @@ import AdminConfiguracoes from "@/pages/admin/Configuracoes";
 
 // Components
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PublicLayout from "@/components/PublicLayout";
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3 }}
-      className="w-full h-full"
+      initial={{ opacity: 0, scale: 0.98, y: 5 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.98, y: -5 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="w-full h-full flex flex-col flex-1"
     >
       {children}
     </motion.div>
@@ -45,16 +46,16 @@ export const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        {/* Public Routes */}
-        <Route path="/" element={<PageTransition><Index /></PageTransition>} />
-        <Route path="/eventos" element={<PageTransition><Eventos /></PageTransition>} />
-        <Route path="/doacoes" element={<PageTransition><Doacoes /></PageTransition>} />
-        <Route path="/galeria" element={<PageTransition><Galeria /></PageTransition>} />
-        <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
-        <Route path="/cadastro" element={<PageTransition><Cadastro /></PageTransition>} />
-        <Route path="/perfil" element={<PageTransition><Perfil /></PageTransition>} />
-        <Route path="/minhas-inscricoes" element={<PageTransition><MinhasInscricoes /></PageTransition>} />
-        
+        {/* Public Routes with Layout */}
+        <Route path="/" element={<PublicLayout><PageTransition><Index /></PageTransition></PublicLayout>} />
+        <Route path="/eventos" element={<PublicLayout><PageTransition><Eventos /></PageTransition></PublicLayout>} />
+        <Route path="/doacoes" element={<PublicLayout><PageTransition><Doacoes /></PageTransition></PublicLayout>} />
+        <Route path="/galeria" element={<PublicLayout><PageTransition><Galeria /></PageTransition></PublicLayout>} />
+        <Route path="/login" element={<PublicLayout><PageTransition><Login /></PageTransition></PublicLayout>} />
+        <Route path="/cadastro" element={<PublicLayout><PageTransition><Cadastro /></PageTransition></PublicLayout>} />
+        <Route path="/perfil" element={<PublicLayout><PageTransition><Perfil /></PageTransition></PublicLayout>} />
+        <Route path="/minhas-inscricoes" element={<PublicLayout><PageTransition><MinhasInscricoes /></PageTransition></PublicLayout>} />
+
         {/* Admin Routes */}
         <Route path="/admin/login" element={<PageTransition><AdminLogin /></PageTransition>} />
         <Route path="/admin/dashboard" element={<PageTransition><ProtectedRoute><AdminDashboard /></ProtectedRoute></PageTransition>} />
@@ -64,7 +65,7 @@ export const AnimatedRoutes = () => {
         <Route path="/admin/doacoes" element={<PageTransition><ProtectedRoute><AdminDoacoes /></ProtectedRoute></PageTransition>} />
         <Route path="/admin/galeria" element={<PageTransition><ProtectedRoute><AdminGaleria /></ProtectedRoute></PageTransition>} />
         <Route path="/admin/configuracoes" element={<PageTransition><ProtectedRoute><AdminConfiguracoes /></ProtectedRoute></PageTransition>} />
-        
+
         {/* Catch-all */}
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
