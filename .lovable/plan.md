@@ -1,138 +1,43 @@
 
-## Plano de Atualizações - Plataforma Conectados
 
-### 1. Galeria de Fotos Dividida em Álbuns
+## Plano: Adicionar Data/Hora de Encerramento nos Eventos
 
-**Arquivo:** `src/pages/Galeria.tsx`
+### 1. Migração de Banco de Dados
 
-**Situação atual:**
-- A galeria pública exibe todas as fotos em um único grid, sem organização por álbuns
-- Os álbuns já existem no banco de dados (Retiro 2026, Level Up 2025)
+Adicionar duas colunas na tabela `events`:
+- `end_date` (date, nullable) — data de encerramento
+- `end_time` (time, nullable) — horário de encerramento
 
-**Alterações:**
-- Adicionar estado para selecionar álbuns
-- Exibir lista de álbuns como cards com foto de capa
-- Ao clicar em um álbum, mostrar apenas as fotos daquele álbum
-- Adicionar navegação para voltar à lista de álbuns
-- Mostrar o título e contagem de fotos de cada álbum
+### 2. Atualizar Hooks e Interfaces
 
-**Novo hook necessário em `src/hooks/useGallery.tsx`:**
-- Criar `useGalleryPhotosWithAlbum` para buscar fotos com informações do álbum
-- Ou criar query que retorna fotos agrupadas por álbum
+**Arquivo:** `src/hooks/useEvents.tsx`
+- Adicionar `end_date` e `end_time` nas interfaces `Event` e `CreateEventData`
 
----
+### 3. Admin: Formulário de Evento
 
-### 2. Fotos Recentes na Página Inicial
+**Arquivo:** `src/pages/admin/Eventos.tsx`
+- Adicionar campos "Data de Encerramento" e "Horário de Encerramento" no formulário, ao lado dos campos de data/hora existentes
+- Renomear os labels atuais para "Data de Início" e "Horário de Início"
+- Incluir os novos campos no `formData`, `resetForm`, `openEditDialog` e `handleSubmit`
 
-**Arquivo:** `src/pages/Index.tsx`
+### 4. Admin: Exibição na Lista
 
-**Situação atual:**
-- Página inicial possui apenas logo, texto descritivo, botões e seção de redes sociais
-- Existem 3 fotos no banco de dados
+Na listagem de eventos no admin, exibir o período completo quando houver data de encerramento:
+- "06/03/2026 às 15:00 — 08/03/2026 às 18:00"
 
-**Alterações:**
-- Adicionar nova seção "Momentos" ou "Galeria" antes da seção de redes sociais
-- Buscar as 4-6 fotos mais recentes do banco usando `useGalleryPhotos`
-- Exibir em grid estilizado com efeito de hover
-- Adicionar link "Ver todas" que redireciona para `/galeria`
-- Design: cards com aspect-ratio 1:1, bordas arredondadas, efeito de scale no hover
+### 5. Página Pública de Eventos
 
-**Novo hook em `src/hooks/useGallery.tsx`:**
-- `useRecentPhotos(limit: number)` - busca as N fotos mais recentes ordenadas por `created_at DESC`
+**Arquivo:** `src/pages/Eventos.tsx`
+- No `EventCard`, exibir o período quando `end_date` existir:
+  - "06 de março às 15:00 — 08 de março às 18:00"
+- Se não tiver `end_date`, manter o formato atual com data única
 
----
+### Resumo de Alterações
 
-### 3. Adicionar Modo Claro no Sistema
+| Arquivo | Alteração |
+|---------|-----------|
+| Migration SQL | `end_date` e `end_time` na tabela `events` |
+| `src/hooks/useEvents.tsx` | Interfaces atualizadas |
+| `src/pages/admin/Eventos.tsx` | Campos de início/encerramento no formulário + exibição na lista |
+| `src/pages/Eventos.tsx` | Exibição do período no card público |
 
-**Arquivos afetados:**
-
-**`src/App.tsx`:**
-- Importar `ThemeProvider` de `next-themes`
-- Envolver toda a aplicação com `<ThemeProvider attribute="class" defaultTheme="dark">`
-
-**`src/components/AdminLayout.tsx`:**
-- Adicionar botão de toggle de tema (Sol/Lua) no header
-- Usar hook `useTheme` de `next-themes`
-
-**`src/pages/Index.tsx`:**
-- Adicionar botão de toggle no header ou footer para visitantes
-
-**`src/index.css`:**
-- As variáveis para modo claro (`.light`) já estão definidas
-- Adicionar variáveis de glass para modo claro:
-```css
-.light {
-  --glass-background: hsl(0, 0%, 100%, 0.9);
-  --glass-border: hsl(0, 0%, 85%, 0.5);
-}
-```
-
-**Novo componente sugerido:** `src/components/ThemeToggle.tsx`
-- Botão reutilizável com ícones Sol/Lua
-- Usa `useTheme()` para alternar entre dark/light
-
----
-
-### 4. Remover Opção de Criar Conta no /admin/login
-
-**Arquivo:** `src/pages/admin/Login.tsx`
-
-**Situação atual:**
-- Existe estado `isSignUp` e botão para alternar entre login e criação de conta
-- O texto alterna entre "Já tem conta? Faça login" e "Primeiro acesso? Criar conta"
-
-**Alterações:**
-- Remover estado `isSignUp`
-- Remover função `signUp` e sua importação do `useAuth`
-- Remover o bloco JSX do botão de alternância (linhas 124-132)
-- Simplificar o `handleSubmit` para apenas fazer login
-- Atualizar texto do botão para sempre mostrar "Entrar"
-- Remover referência a `isSubmitting ? 'Criando conta...'`
-
----
-
-### Resumo das Alterações
-
-| Item | Arquivo(s) | Tipo |
-|------|-----------|------|
-| Galeria por álbuns | `src/pages/Galeria.tsx`, `src/hooks/useGallery.tsx` | Frontend |
-| Fotos na home | `src/pages/Index.tsx`, `src/hooks/useGallery.tsx` | Frontend |
-| Modo claro | `src/App.tsx`, `src/index.css`, `src/components/AdminLayout.tsx`, novo `ThemeToggle.tsx` | Frontend |
-| Remover signup | `src/pages/admin/Login.tsx` | Frontend |
-
----
-
-### Ordem de Implementação
-
-1. Primeiro: Remover opção de criar conta (correção rápida)
-2. Segundo: Adicionar modo claro com ThemeProvider
-3. Terceiro: Criar hook `useRecentPhotos` e integrar fotos na home
-4. Quarto: Refatorar página de galeria para exibir álbuns
-
----
-
-### Detalhes Adicionais
-
-**Estrutura da Galeria por Álbuns:**
-```text
-/galeria
-├── [Lista de Álbuns]     <- View inicial
-│   ├── Card Álbum 1 (capa + título + contagem)
-│   ├── Card Álbum 2
-│   └── ...
-└── [Fotos do Álbum]      <- Ao clicar em um álbum
-    ├── Botão "Voltar"
-    ├── Título do álbum
-    └── Grid de fotos
-```
-
-**Seção de Fotos na Home:**
-```text
-[Hero Section]
-[Seção "Nossos Momentos"]
-  ├── Título "Momentos"
-  ├── Grid 2x2 ou 3x2 com fotos recentes
-  └── Link "Ver todas →" para /galeria
-[Social Links Section]
-[Footer]
-```
