@@ -33,6 +33,9 @@ const Eventos = () => {
     payment_method: 'free',
     pix_key: '',
     n8n_webhook_url: '',
+    accepts_credit_card: false,
+    accepts_installments: false,
+    max_installments: '1',
   });
 
   const resetForm = () => {
@@ -48,6 +51,9 @@ const Eventos = () => {
       payment_method: 'free',
       pix_key: '',
       n8n_webhook_url: '',
+      accepts_credit_card: false,
+      accepts_installments: false,
+      max_installments: '1',
     });
     setEditingEvent(null);
   };
@@ -66,6 +72,9 @@ const Eventos = () => {
       payment_method: event.payment_method || 'free',
       pix_key: event.pix_key || '',
       n8n_webhook_url: event.n8n_webhook_url || '',
+      accepts_credit_card: event.accepts_credit_card ?? false,
+      accepts_installments: event.accepts_installments ?? false,
+      max_installments: event.max_installments?.toString() || '1',
     });
     setIsOpen(true);
   };
@@ -85,6 +94,9 @@ const Eventos = () => {
       payment_method: formData.payment_method,
       pix_key: formData.pix_key || null,
       n8n_webhook_url: formData.n8n_webhook_url || null,
+      accepts_credit_card: formData.accepts_credit_card,
+      accepts_installments: formData.accepts_installments,
+      max_installments: parseInt(formData.max_installments) || 1,
     };
 
     if (editingEvent) {
@@ -227,6 +239,37 @@ const Eventos = () => {
                       <p className="text-xs text-muted-foreground">Se vazio, usa a chave PIX das configurações gerais.</p>
                     </div>
 
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="accepts_credit_card"
+                        checked={formData.accepts_credit_card}
+                        onCheckedChange={(v) => setFormData({ ...formData, accepts_credit_card: v })}
+                      />
+                      <Label htmlFor="accepts_credit_card">Aceita cartão de crédito (presencial)</Label>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="accepts_installments"
+                        checked={formData.accepts_installments}
+                        onCheckedChange={(v) => setFormData({ ...formData, accepts_installments: v, max_installments: v ? '2' : '1' })}
+                      />
+                      <Label htmlFor="accepts_installments">Aceita parcelamento</Label>
+                    </div>
+
+                    {formData.accepts_installments && (
+                      <div className="space-y-2">
+                        <Label htmlFor="max_installments">Máximo de parcelas</Label>
+                        <Input
+                          id="max_installments"
+                          type="number"
+                          min="2"
+                          max="24"
+                          value={formData.max_installments}
+                          onChange={(e) => setFormData({ ...formData, max_installments: e.target.value })}
+                        />
+                      </div>
+                    )}
                   </>
                 )}
 
