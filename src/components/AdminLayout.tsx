@@ -29,6 +29,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import logoConectados from '@/assets/logo-conectados.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import AdminNotificationBell from '@/components/AdminNotificationBell';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -66,7 +67,10 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
           <Menu className="h-6 w-6" />
         </button>
         <img src={logoConectados} alt="Conectados" className="h-8" />
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <AdminNotificationBell />
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Mobile Sidebar Overlay */}
@@ -129,6 +133,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
               <LogOut className="h-4 w-4" />
               Sair
             </Button>
+            <AdminNotificationBell />
             <ThemeToggle />
           </div>
         </div>

@@ -17,6 +17,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useCreateInstallments } from '@/hooks/useInstallments';
 import PaymentSelector, { PaymentSelectionResult } from '@/components/PaymentSelector';
 import { toast } from 'sonner';
+import { createAdminNotification } from '@/hooks/useAdminNotifications';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -188,6 +189,17 @@ const Eventos = () => {
       }
 
       const wasPaid = !isFree;
+
+      // Notify admin if payment proof was sent
+      if (wasPaid && paymentResult?.proofUrl && registration) {
+        createAdminNotification({
+          title: 'Novo comprovante de pagamento',
+          message: `${formData.name} enviou comprovante para o evento "${selectedEvent.title}"`,
+          type: 'payment_proof',
+          reference_id: registration.id,
+        });
+      }
+
       setSelectedEvent(null);
       setFormData({ name: '', whatsapp: '', email: '', age: '', customFields: {} });
       setPaymentResult(null);
