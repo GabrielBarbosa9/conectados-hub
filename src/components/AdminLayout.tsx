@@ -29,6 +29,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import logoConectados from '@/assets/logo-conectados.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import AdminNotificationBell from '@/components/AdminNotificationBell';
 
 interface AdminLayoutProps {
   children: ReactNode;
