@@ -135,7 +135,7 @@ const Eventos = () => {
       return;
     }
 
-    if (isPaid && selectedEvent.accepts_credit_card && !paymentResult) {
+    if (isPaid && !paymentResult) {
       toast.error('Selecione a forma de pagamento.');
       return;
     }
