@@ -66,9 +66,6 @@ const Eventos = () => {
       payment_method: event.payment_method || 'free',
       pix_key: event.pix_key || '',
       n8n_webhook_url: event.n8n_webhook_url || '',
-      accepts_credit_card: event.accepts_credit_card ?? false,
-      accepts_installments: event.accepts_installments ?? false,
-      max_installments: event.max_installments?.toString() || '1',
     });
     setIsOpen(true);
   };
