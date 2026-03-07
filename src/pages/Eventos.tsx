@@ -139,10 +139,6 @@ const Eventos = () => {
       toast.error('Selecione a forma de pagamento.');
       return;
     }
-    if (paymentResult?.paymentType === 'credit_card' && !paymentResult.creditCardPaymentDate) {
-      toast.error('Informe a data prevista de pagamento.');
-      return;
-    }
 
     if (existingRegistration) {
       toast.error('Você já está inscrito neste evento.');
