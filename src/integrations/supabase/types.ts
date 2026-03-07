@@ -284,13 +284,18 @@ export type Database = {
           checked_in: boolean
           checked_in_at: string | null
           created_at: string
+          credit_card_payment_date: string | null
           custom_fields: Json | null
           email: string | null
           event_id: string
           id: string
+          installments_total: number | null
           name: string
+          payment_mode: string | null
           payment_proof_url: string | null
           payment_status: string
+          payment_type: string | null
+          user_id: string | null
           whatsapp: string
         }
         Insert: {
@@ -298,13 +303,18 @@ export type Database = {
           checked_in?: boolean
           checked_in_at?: string | null
           created_at?: string
+          credit_card_payment_date?: string | null
           custom_fields?: Json | null
           email?: string | null
           event_id: string
           id?: string
+          installments_total?: number | null
           name: string
+          payment_mode?: string | null
           payment_proof_url?: string | null
           payment_status?: string
+          payment_type?: string | null
+          user_id?: string | null
           whatsapp: string
         }
         Update: {
@@ -312,13 +322,18 @@ export type Database = {
           checked_in?: boolean
           checked_in_at?: string | null
           created_at?: string
+          credit_card_payment_date?: string | null
           custom_fields?: Json | null
           email?: string | null
           event_id?: string
           id?: string
+          installments_total?: number | null
           name?: string
+          payment_mode?: string | null
           payment_proof_url?: string | null
           payment_status?: string
+          payment_type?: string | null
+          user_id?: string | null
           whatsapp?: string
         }
         Relationships: [
