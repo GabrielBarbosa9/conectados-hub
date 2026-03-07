@@ -88,6 +88,8 @@ export type Database = {
           accepts_installments: boolean
           created_at: string
           description: string | null
+          end_date: string | null
+          end_time: string | null
           event_date: string
           event_time: string | null
           id: string
@@ -107,6 +109,8 @@ export type Database = {
           accepts_installments?: boolean
           created_at?: string
           description?: string | null
+          end_date?: string | null
+          end_time?: string | null
           event_date: string
           event_time?: string | null
           id?: string
@@ -126,6 +130,8 @@ export type Database = {
           accepts_installments?: boolean
           created_at?: string
           description?: string | null
+          end_date?: string | null
+          end_time?: string | null
           event_date?: string
           event_time?: string | null
           id?: string
