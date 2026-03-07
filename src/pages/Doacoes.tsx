@@ -1,6 +1,5 @@
-import { useState, useRef, useMemo } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
-import { Copy, Check, Heart, Loader2, UploadCloud } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Copy, Check, Heart, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { useSettings } from '@/hooks/useSettings';
 import { useCreateDonation } from '@/hooks/useDonations';
 import { toast } from 'sonner';
-import { generatePixPayload } from '@/lib/pixUtils';
 import { supabase } from '@/integrations/supabase/client';
 
 const Doacoes = () => {
@@ -21,21 +19,11 @@ const Doacoes = () => {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const pixPayload = useMemo(() => {
-    if (!settings?.pix_key) return '';
-    const numAmount = amount ? parseFloat(amount) : undefined;
-    return generatePixPayload(
-      settings.pix_key,
-      settings.pix_name || 'Conectados',
-      'Cidade', // Generic city as it's not strictly critical for PIX approval in most cases unless it's a specific merchant
-      numAmount,
-      'Doação Conectados'
-    );
-  }, [settings?.pix_key, settings?.pix_name, amount]);
+  const pixKey = settings?.pix_key || '';
 
   const copyPix = async () => {
-    if (pixPayload) {
-      await navigator.clipboard.writeText(pixPayload);
+    if (pixKey) {
+      await navigator.clipboard.writeText(pixKey);
       setCopied(true);
       toast.success('Chave PIX copiada!');
       setTimeout(() => setCopied(false), 2000);
@@ -97,36 +85,36 @@ const Doacoes = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Sessão do PIX */}
+          {/* Chave PIX */}
           <Card className="glass-card animate-slide-up flex flex-col h-full">
             <CardHeader className="text-center pb-4">
-              <CardTitle>QR Code PIX</CardTitle>
+              <CardTitle>Chave PIX</CardTitle>
               <CardDescription>
-                Escaneie ou copie a chave para doar
+                Copie a chave abaixo para fazer sua doação
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 flex-1 flex flex-col items-center justify-between">
-              {pixPayload ? (
-                <>
-                  <div className="bg-white p-4 rounded-xl shadow-sm">
-                    <QRCodeSVG value={pixPayload} size={180} />
-                  </div>
-
-                  <div className="w-full space-y-4">
-                    <div className="flex items-center gap-2 rounded-lg bg-muted p-3">
-                      <code className="flex-1 break-all text-xs truncate max-h-16 overflow-hidden">
-                        {pixPayload.substring(0, 40)}...
-                      </code>
-                      <Button size="icon" variant="ghost" className="shrink-0" onClick={copyPix}>
-                        {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
-
-                    <Button className="w-full" onClick={copyPix}>
-                      {copied ? 'PIX Copiado!' : 'Copiar PIX Copia e Cola'}
+            <CardContent className="space-y-6 flex-1 flex flex-col items-center justify-center">
+              {pixKey ? (
+                <div className="w-full space-y-4">
+                  <div className="flex items-center gap-2 rounded-lg bg-muted p-3">
+                    <code className="flex-1 break-all text-sm font-mono">
+                      {pixKey}
+                    </code>
+                    <Button size="icon" variant="ghost" className="shrink-0" onClick={copyPix}>
+                      {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   </div>
-                </>
+
+                  {settings?.pix_name && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      Beneficiário: {settings.pix_name}
+                    </p>
+                  )}
+
+                  <Button className="w-full" onClick={copyPix}>
+                    {copied ? 'Chave PIX Copiada!' : 'Copiar Chave PIX'}
+                  </Button>
+                </div>
               ) : (
                 <div className="flex-1 flex items-center justify-center">
                   <p className="text-center text-muted-foreground">
@@ -164,9 +152,6 @@ const Doacoes = () => {
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Ao preencher o valor, o QR Code ao lado será atualizado com o valor exato.
-                    </p>
                   </div>
 
                   <div className="space-y-2">
