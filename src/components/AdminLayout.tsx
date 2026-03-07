@@ -67,7 +67,10 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
           <Menu className="h-6 w-6" />
         </button>
         <img src={logoConectados} alt="Conectados" className="h-8" />
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <AdminNotificationBell />
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Mobile Sidebar Overlay */}
