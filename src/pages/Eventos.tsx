@@ -189,6 +189,17 @@ const Eventos = () => {
       }
 
       const wasPaid = !isFree;
+
+      // Notify admin if payment proof was sent
+      if (wasPaid && paymentResult?.proofUrl && registration) {
+        createAdminNotification({
+          title: 'Novo comprovante de pagamento',
+          message: `${formData.name} enviou comprovante para o evento "${selectedEvent.title}"`,
+          type: 'payment_proof',
+          reference_id: registration.id,
+        });
+      }
+
       setSelectedEvent(null);
       setFormData({ name: '', whatsapp: '', email: '', age: '', customFields: {} });
       setPaymentResult(null);

@@ -133,6 +133,7 @@ const AdminLayout = ({ children, title }: AdminLayoutProps) => {
               <LogOut className="h-4 w-4" />
               Sair
             </Button>
+            <AdminNotificationBell />
             <ThemeToggle />
           </div>
         </div>

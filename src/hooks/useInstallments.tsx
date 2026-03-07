@@ -144,6 +144,12 @@ export const useUploadInstallmentProof = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['installments', variables.registrationId] });
       toast.success('Comprovante enviado! Aguardando confirmação.');
+      createAdminNotification({
+        title: 'Novo comprovante de parcela',
+        message: `Comprovante enviado para a parcela (inscrição ${variables.registrationId.slice(0, 8)}...)`,
+        type: 'payment_proof',
+        reference_id: variables.registrationId,
+      });
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erro ao enviar comprovante.');
