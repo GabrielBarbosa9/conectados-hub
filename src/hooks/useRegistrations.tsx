@@ -99,14 +99,12 @@ export const useCreateRegistration = () => {
   
   return useMutation({
     mutationFn: async (registrationData: CreateRegistrationData) => {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('registrations')
-        .insert([registrationData])
-        .select()
-        .single();
+        .insert([registrationData]);
       
       if (error) throw error;
-      return data;
+      return registrationData;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['registrations'] });
