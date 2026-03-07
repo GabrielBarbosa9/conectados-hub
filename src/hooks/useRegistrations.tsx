@@ -99,14 +99,13 @@ export const useCreateRegistration = () => {
   
   return useMutation({
     mutationFn: async (registrationData: CreateRegistrationData) => {
-      const { data, error } = await supabase
+      const id = crypto.randomUUID();
+      const { error } = await supabase
         .from('registrations')
-        .insert([registrationData])
-        .select()
-        .single();
+        .insert([{ ...registrationData, id }]);
       
       if (error) throw error;
-      return data;
+      return { ...registrationData, id };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['registrations'] });
