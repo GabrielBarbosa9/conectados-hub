@@ -16,9 +16,6 @@ export interface Event {
   payment_method: string | null;
   pix_key: string | null;
   n8n_webhook_url: string | null;
-  accepts_credit_card: boolean;
-  accepts_installments: boolean;
-  max_installments: number;
   created_at: string;
   updated_at: string;
 }
@@ -45,9 +42,6 @@ export interface CreateEventData {
   payment_method?: string;
   pix_key?: string;
   n8n_webhook_url?: string;
-  accepts_credit_card?: boolean;
-  accepts_installments?: boolean;
-  max_installments?: number;
 }
 
 export const useEvents = (activeOnly = false) => {
