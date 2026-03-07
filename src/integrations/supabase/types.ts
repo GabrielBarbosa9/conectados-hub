@@ -84,17 +84,16 @@ export type Database = {
       }
       events: {
         Row: {
-          accepts_credit_card: boolean
-          accepts_installments: boolean
           created_at: string
           description: string | null
+          end_date: string | null
+          end_time: string | null
           event_date: string
           event_time: string | null
           id: string
           is_active: boolean
           location: string | null
           max_capacity: number | null
-          max_installments: number
           n8n_webhook_url: string | null
           payment_method: string | null
           pix_key: string | null
@@ -103,17 +102,16 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          accepts_credit_card?: boolean
-          accepts_installments?: boolean
           created_at?: string
           description?: string | null
+          end_date?: string | null
+          end_time?: string | null
           event_date: string
           event_time?: string | null
           id?: string
           is_active?: boolean
           location?: string | null
           max_capacity?: number | null
-          max_installments?: number
           n8n_webhook_url?: string | null
           payment_method?: string | null
           pix_key?: string | null
@@ -122,17 +120,16 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          accepts_credit_card?: boolean
-          accepts_installments?: boolean
           created_at?: string
           description?: string | null
+          end_date?: string | null
+          end_time?: string | null
           event_date?: string
           event_time?: string | null
           id?: string
           is_active?: boolean
           location?: string | null
           max_capacity?: number | null
-          max_installments?: number
           n8n_webhook_url?: string | null
           payment_method?: string | null
           pix_key?: string | null
