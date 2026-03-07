@@ -85,9 +85,6 @@ const Eventos = () => {
       payment_method: formData.payment_method,
       pix_key: formData.pix_key || null,
       n8n_webhook_url: formData.n8n_webhook_url || null,
-      accepts_credit_card: formData.accepts_credit_card,
-      accepts_installments: formData.accepts_installments,
-      max_installments: parseInt(formData.max_installments) || 1,
     };
 
     if (editingEvent) {
