@@ -17,6 +17,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useCreateInstallments } from '@/hooks/useInstallments';
 import PaymentSelector, { PaymentSelectionResult } from '@/components/PaymentSelector';
 import { toast } from 'sonner';
+import { createAdminNotification } from '@/hooks/useAdminNotifications';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
