@@ -1,66 +1,138 @@
 
+## Plano de Atualizações - Plataforma Conectados
 
-## Diagnóstico
+### 1. Galeria de Fotos Dividida em Álbuns
 
-A tabela `installment_payments` **não existe** no banco de dados — nenhuma migração a criou. O código frontend (`useInstallments.tsx`, `MinhasInscricoes.tsx`) já está implementado corretamente, mas todas as queries retornam erro 404 silenciosamente, fazendo com que a lista de parcelas nunca apareça.
+**Arquivo:** `src/pages/Galeria.tsx`
 
-Além disso, o bucket `installment-proofs` (usado para upload de comprovantes de parcelas) também não existe no storage.
+**Situação atual:**
+- A galeria pública exibe todas as fotos em um único grid, sem organização por álbuns
+- Os álbuns já existem no banco de dados (Retiro 2026, Level Up 2025)
 
-## Plano
+**Alterações:**
+- Adicionar estado para selecionar álbuns
+- Exibir lista de álbuns como cards com foto de capa
+- Ao clicar em um álbum, mostrar apenas as fotos daquele álbum
+- Adicionar navegação para voltar à lista de álbuns
+- Mostrar o título e contagem de fotos de cada álbum
 
-### 1. Criar migração SQL
+**Novo hook necessário em `src/hooks/useGallery.tsx`:**
+- Criar `useGalleryPhotosWithAlbum` para buscar fotos com informações do álbum
+- Ou criar query que retorna fotos agrupadas por álbum
 
-Criar a tabela `installment_payments` e o bucket `installment-proofs`:
+---
 
-```sql
-CREATE TABLE public.installment_payments (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  registration_id uuid NOT NULL REFERENCES public.registrations(id) ON DELETE CASCADE,
-  installment_number integer NOT NULL,
-  amount numeric NOT NULL DEFAULT 0,
-  due_date date,
-  payment_status text NOT NULL DEFAULT 'pending',
-  payment_date date,
-  proof_url text,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
+### 2. Fotos Recentes na Página Inicial
 
-ALTER TABLE public.installment_payments ENABLE ROW LEVEL SECURITY;
+**Arquivo:** `src/pages/Index.tsx`
 
--- Políticas: admins veem tudo, usuários veem suas próprias parcelas
-CREATE POLICY "Admins can manage installments"
-  ON public.installment_payments FOR ALL TO authenticated
-  USING (public.has_role(auth.uid(), 'admin'));
+**Situação atual:**
+- Página inicial possui apenas logo, texto descritivo, botões e seção de redes sociais
+- Existem 3 fotos no banco de dados
 
-CREATE POLICY "Users can view own installments"
-  ON public.installment_payments FOR SELECT TO authenticated
-  USING (
-    registration_id IN (
-      SELECT id FROM public.registrations WHERE user_id = auth.uid()
-    )
-  );
+**Alterações:**
+- Adicionar nova seção "Momentos" ou "Galeria" antes da seção de redes sociais
+- Buscar as 4-6 fotos mais recentes do banco usando `useGalleryPhotos`
+- Exibir em grid estilizado com efeito de hover
+- Adicionar link "Ver todas" que redireciona para `/galeria`
+- Design: cards com aspect-ratio 1:1, bordas arredondadas, efeito de scale no hover
 
-CREATE POLICY "Users can update own installments"
-  ON public.installment_payments FOR UPDATE TO authenticated
-  USING (
-    registration_id IN (
-      SELECT id FROM public.registrations WHERE user_id = auth.uid()
-    )
-  );
+**Novo hook em `src/hooks/useGallery.tsx`:**
+- `useRecentPhotos(limit: number)` - busca as N fotos mais recentes ordenadas por `created_at DESC`
 
--- Bucket para comprovantes de parcelas
-INSERT INTO storage.buckets (id, name, public) VALUES ('installment-proofs', 'installment-proofs', true);
+---
 
-CREATE POLICY "Anyone can view installment proofs"
-  ON storage.objects FOR SELECT USING (bucket_id = 'installment-proofs');
+### 3. Adicionar Modo Claro no Sistema
 
-CREATE POLICY "Authenticated users can upload installment proofs"
-  ON storage.objects FOR INSERT TO authenticated
-  WITH CHECK (bucket_id = 'installment-proofs');
+**Arquivos afetados:**
+
+**`src/App.tsx`:**
+- Importar `ThemeProvider` de `next-themes`
+- Envolver toda a aplicação com `<ThemeProvider attribute="class" defaultTheme="dark">`
+
+**`src/components/AdminLayout.tsx`:**
+- Adicionar botão de toggle de tema (Sol/Lua) no header
+- Usar hook `useTheme` de `next-themes`
+
+**`src/pages/Index.tsx`:**
+- Adicionar botão de toggle no header ou footer para visitantes
+
+**`src/index.css`:**
+- As variáveis para modo claro (`.light`) já estão definidas
+- Adicionar variáveis de glass para modo claro:
+```css
+.light {
+  --glass-background: hsl(0, 0%, 100%, 0.9);
+  --glass-border: hsl(0, 0%, 85%, 0.5);
+}
 ```
 
-### 2. Nenhuma alteração de código necessária
+**Novo componente sugerido:** `src/components/ThemeToggle.tsx`
+- Botão reutilizável com ícones Sol/Lua
+- Usa `useTheme()` para alternar entre dark/light
 
-O frontend já está completo — o problema é exclusivamente a ausência da tabela e do bucket.
+---
 
+### 4. Remover Opção de Criar Conta no /admin/login
+
+**Arquivo:** `src/pages/admin/Login.tsx`
+
+**Situação atual:**
+- Existe estado `isSignUp` e botão para alternar entre login e criação de conta
+- O texto alterna entre "Já tem conta? Faça login" e "Primeiro acesso? Criar conta"
+
+**Alterações:**
+- Remover estado `isSignUp`
+- Remover função `signUp` e sua importação do `useAuth`
+- Remover o bloco JSX do botão de alternância (linhas 124-132)
+- Simplificar o `handleSubmit` para apenas fazer login
+- Atualizar texto do botão para sempre mostrar "Entrar"
+- Remover referência a `isSubmitting ? 'Criando conta...'`
+
+---
+
+### Resumo das Alterações
+
+| Item | Arquivo(s) | Tipo |
+|------|-----------|------|
+| Galeria por álbuns | `src/pages/Galeria.tsx`, `src/hooks/useGallery.tsx` | Frontend |
+| Fotos na home | `src/pages/Index.tsx`, `src/hooks/useGallery.tsx` | Frontend |
+| Modo claro | `src/App.tsx`, `src/index.css`, `src/components/AdminLayout.tsx`, novo `ThemeToggle.tsx` | Frontend |
+| Remover signup | `src/pages/admin/Login.tsx` | Frontend |
+
+---
+
+### Ordem de Implementação
+
+1. Primeiro: Remover opção de criar conta (correção rápida)
+2. Segundo: Adicionar modo claro com ThemeProvider
+3. Terceiro: Criar hook `useRecentPhotos` e integrar fotos na home
+4. Quarto: Refatorar página de galeria para exibir álbuns
+
+---
+
+### Detalhes Adicionais
+
+**Estrutura da Galeria por Álbuns:**
+```text
+/galeria
+├── [Lista de Álbuns]     <- View inicial
+│   ├── Card Álbum 1 (capa + título + contagem)
+│   ├── Card Álbum 2
+│   └── ...
+└── [Fotos do Álbum]      <- Ao clicar em um álbum
+    ├── Botão "Voltar"
+    ├── Título do álbum
+    └── Grid de fotos
+```
+
+**Seção de Fotos na Home:**
+```text
+[Hero Section]
+[Seção "Nossos Momentos"]
+  ├── Título "Momentos"
+  ├── Grid 2x2 ou 3x2 com fotos recentes
+  └── Link "Ver todas →" para /galeria
+[Social Links Section]
+[Footer]
+```

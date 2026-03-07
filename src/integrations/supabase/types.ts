@@ -221,6 +221,53 @@ export type Database = {
           },
         ]
       }
+      installment_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string | null
+          id: string
+          installment_number: number
+          payment_date: string | null
+          payment_status: string
+          proof_url: string | null
+          registration_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          installment_number: number
+          payment_date?: string | null
+          payment_status?: string
+          proof_url?: string | null
+          registration_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          installment_number?: number
+          payment_date?: string | null
+          payment_status?: string
+          proof_url?: string | null
+          registration_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installment_payments_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "registrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address_city: string | null
