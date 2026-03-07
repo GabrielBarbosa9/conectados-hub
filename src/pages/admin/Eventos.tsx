@@ -48,9 +48,6 @@ const Eventos = () => {
       payment_method: 'free',
       pix_key: '',
       n8n_webhook_url: '',
-      accepts_credit_card: false,
-      accepts_installments: false,
-      max_installments: '1',
     });
     setEditingEvent(null);
   };
