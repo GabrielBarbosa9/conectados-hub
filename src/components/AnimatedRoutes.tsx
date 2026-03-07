@@ -12,6 +12,7 @@ import Cadastro from "@/pages/Cadastro";
 import Perfil from "@/pages/Perfil";
 import MinhasInscricoes from "@/pages/MinhasInscricoes";
 import Esbocos from "@/pages/Esbocos";
+import Migrate from "@/pages/Migrate";
 
 // Admin Pages
 import AdminLogin from "@/pages/admin/Login";
@@ -55,6 +56,7 @@ export const AnimatedRoutes = () => {
         <Route path="/doacoes" element={<PublicLayout><PageTransition><Doacoes /></PageTransition></PublicLayout>} />
         <Route path="/galeria" element={<PublicLayout><PageTransition><Galeria /></PageTransition></PublicLayout>} />
         <Route path="/esbocos" element={<PublicLayout><PageTransition><Esbocos /></PageTransition></PublicLayout>} />
+        <Route path="/migrate" element={<PublicLayout><PageTransition><Migrate /></PageTransition></PublicLayout>} />
         <Route path="/login" element={<PublicLayout><PageTransition><Login /></PageTransition></PublicLayout>} />
         <Route path="/cadastro" element={<PublicLayout><PageTransition><Cadastro /></PageTransition></PublicLayout>} />
         <Route path="/perfil" element={<PublicLayout><PageTransition><Perfil /></PageTransition></PublicLayout>} />
