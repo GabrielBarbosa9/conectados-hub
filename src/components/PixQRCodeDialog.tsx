@@ -79,10 +79,10 @@ const PixQRCodeDialog = ({
 
           {/* Chave PIX */}
           <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">Ou copie a chave PIX:</p>
+            <p className="text-xs font-medium text-muted-foreground">Ou copie o código PIX Copia e Cola:</p>
             <div className="flex gap-2">
-              <div className="flex-1 rounded-md bg-muted px-3 py-2 text-sm font-mono break-all">
-                {pixKey}
+              <div className="flex-1 rounded-md bg-muted px-3 py-2 text-xs font-mono break-all max-h-20 overflow-y-auto">
+                {pixPayload}
               </div>
               <Button
                 variant="outline"
