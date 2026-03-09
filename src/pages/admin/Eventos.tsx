@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent, Event } from '@/hooks/useEvents';
 import { format } from 'date-fns';
+import { parseLocalDate } from '@/lib/dateUtils';
 import EventCustomFieldsManager from '@/components/EventCustomFieldsManager';
 
 const Eventos = () => {
@@ -327,7 +328,7 @@ const Eventos = () => {
                 <div>
                   <CardTitle className="text-lg">{event.title}</CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    {format(new Date(event.event_date), 'dd/MM/yyyy')}
+                    {format(parseLocalDate(event.event_date), 'dd/MM/yyyy')}
                     {event.event_time && ` às ${event.event_time.slice(0, 5)}`}
                     {' · '}
                     {paymentLabel(event.payment_method)}

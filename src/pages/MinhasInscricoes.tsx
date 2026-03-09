@@ -10,6 +10,7 @@ import { useEvents } from '@/hooks/useEvents';
 import { useSettings } from '@/hooks/useSettings';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseLocalDate } from '@/lib/dateUtils';
 import { toast } from 'sonner';
 
 const regStatusMap: Record<string, { label: string; className: string }> = {
@@ -60,7 +61,7 @@ const InstallmentRow = ({ inst, registrationId, pixKey }: { inst: InstallmentPay
             <p className="text-sm font-medium">Parcela {inst.installment_number}</p>
             <p className="text-xs text-muted-foreground">
               R$ {Number(inst.amount).toFixed(2).replace('.', ',')}
-              {inst.due_date && ` · Vence ${format(new Date(inst.due_date + 'T00:00:00'), 'dd/MM/yyyy', { locale: ptBR })}`}
+              {inst.due_date && ` · Vence ${format(parseLocalDate(inst.due_date), 'dd/MM/yyyy', { locale: ptBR })}`}
             </p>
           </div>
         </div>
@@ -174,7 +175,7 @@ const RegistrationCard = ({ reg, eventTitle, event, pixKey }: { reg: Registratio
             {event.event_date && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                <span>{format(new Date(event.event_date), "dd 'de' MMMM", { locale: ptBR })}</span>
+                <span>{format(parseLocalDate(event.event_date), "dd 'de' MMMM", { locale: ptBR })}</span>
               </div>
             )}
             {event.location && (

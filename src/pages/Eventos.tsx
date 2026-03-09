@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { createAdminNotification } from '@/hooks/useAdminNotifications';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseLocalDate } from '@/lib/dateUtils';
 
 const EventCard = ({ event, onRegister }: { event: Event; onRegister: (event: Event) => void }) => {
   const { data: count = 0 } = useRegistrationCount(event.id);
@@ -39,13 +40,15 @@ const EventCard = ({ event, onRegister }: { event: Event; onRegister: (event: Ev
         <CardDescription>{event.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            {format(new Date(event.event_date), "dd 'de' MMMM", { locale: ptBR })}
-          </div>
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          {event.event_date && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>{format(parseLocalDate(event.event_date), "dd 'de' MMMM", { locale: ptBR })}</span>
+            </div>
+          )}
           {event.event_time && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-muted-foreground">
               <Clock className="h-4 w-4" />
               {event.event_time.slice(0, 5)}
             </div>
