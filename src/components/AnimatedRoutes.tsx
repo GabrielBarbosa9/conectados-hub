@@ -1,5 +1,6 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
 
 // Public Pages
 import Index from "@/pages/Index";
@@ -44,6 +45,24 @@ const PageTransition = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+const AdminRedirect = () => {
+  const { user, isAdmin, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (user && isAdmin) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
+  return <Navigate to="/admin/login" replace />;
+};
+
 export const AnimatedRoutes = () => {
   const location = useLocation();
 
@@ -63,6 +82,7 @@ export const AnimatedRoutes = () => {
         <Route path="/minhas-inscricoes" element={<PublicLayout><PageTransition><MinhasInscricoes /></PageTransition></PublicLayout>} />
 
         {/* Admin Routes */}
+        <Route path="/admin" element={<PageTransition><AdminRedirect /></PageTransition>} />
         <Route path="/admin/login" element={<PageTransition><AdminLogin /></PageTransition>} />
         <Route path="/admin/dashboard" element={<PageTransition><ProtectedRoute><AdminDashboard /></ProtectedRoute></PageTransition>} />
         <Route path="/admin/eventos" element={<PageTransition><ProtectedRoute><AdminEventos /></ProtectedRoute></PageTransition>} />
