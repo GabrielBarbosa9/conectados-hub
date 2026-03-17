@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useRegistrations, Registration } from '@/hooks/useRegistrations';
 import { useInstallments, useUploadInstallmentProof, InstallmentPayment } from '@/hooks/useInstallments';
-import { useEvents } from '@/hooks/useEvents';
+import { useEvents, Event } from '@/hooks/useEvents';
 import { useSettings } from '@/hooks/useSettings';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -36,10 +36,47 @@ const InstallmentRow = ({ inst, registrationId, pixKey }: { inst: InstallmentPay
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { toast.error('Arquivo deve ter no máximo 10MB'); return; }
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Apenas arquivos JPG, PNG, GIF, WebP ou PDF são permitidos');
+      return;
+    }
+    
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Arquivo deve ter no máximo 10MB');
+      return;
+    }
+    
     const amountParsed = customAmount ? parseFloat(customAmount.replace(',', '.')) : undefined;
     const amount = amountParsed != null && !Number.isNaN(amountParsed) && amountParsed >= 0 ? amountParsed : undefined;
-    uploadProof.mutate({ installmentId: inst.id, registrationId, file, amount });
+    
+    // Show loading toast
+    const toastId = toast.loading('Enviando comprovante...');
+    
+    uploadProof.mutate(
+      { installmentId: inst.id, registrationId, file, amount },
+      {
+        onSuccess: () => {
+          toast.dismiss(toastId);
+        },
+        onError: (error: Error) => {
+          toast.dismiss(toastId);
+          if (error.message.includes('permission')) {
+            toast.error('Você não tem permissão para enviar comprovante para esta inscrição');
+          } else if (error.message.includes('size')) {
+            toast.error('Arquivo muito grande. Máximo 10MB');
+          } else if (error.message.includes('type')) {
+            toast.error('Tipo de arquivo não permitido');
+          } else {
+            toast.error(error.message || 'Erro ao enviar comprovante');
+          }
+        }
+      }
+    );
+    
     e.target.value = '';
   };
 
@@ -94,7 +131,7 @@ const InstallmentRow = ({ inst, registrationId, pixKey }: { inst: InstallmentPay
                   onClick={() => fileRef.current?.click()}
                 >
                   {uploadProof.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-                  <span className="hidden sm:inline">Enviar</span>
+                  <span className="hidden sm:inline">Enviar comprovante</span>
                 </Button>
               )}
               <input ref={fileRef} type="file" accept="image/*,.pdf" className="hidden" onChange={handleFile} />
@@ -130,7 +167,7 @@ const InstallmentRow = ({ inst, registrationId, pixKey }: { inst: InstallmentPay
     </div>
   );
 };
-const RegistrationCard = ({ reg, eventTitle, event, pixKey }: { reg: Registration; eventTitle: string; event: any; pixKey: string }) => {
+const RegistrationCard = ({ reg, eventTitle, event, pixKey }: { reg: Registration; eventTitle: string; event: Event | null; pixKey: string }) => {
   const [expanded, setExpanded] = useState(false);
   const [showEventDetails, setShowEventDetails] = useState(false);
   const { data: installments } = useInstallments(
