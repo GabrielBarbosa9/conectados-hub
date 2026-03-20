@@ -122,12 +122,9 @@ export const useUploadInstallmentProof = () => {
         .upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from('installment-proofs')
-        .getPublicUrl(path);
-
+      // Store only the path — signed URLs are generated on-demand since bucket is private
       const updatePayload: { proof_url: string; payment_status: string; amount?: number } = {
-        proof_url: urlData.publicUrl,
+        proof_url: path,
         payment_status: 'pending',
       };
       if (amount != null && amount >= 0) {
@@ -139,7 +136,7 @@ export const useUploadInstallmentProof = () => {
         .eq('id', installmentId);
       if (updateError) throw updateError;
 
-      return urlData.publicUrl;
+      return path;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['installments', variables.registrationId] });
@@ -250,5 +247,28 @@ export const useConfirmInstallment = () => {
     onError: () => {
       toast.error('Erro ao atualizar parcela.');
     },
+  });
+};
+
+/**
+ * Generates a 1-hour signed URL for an installment proof stored in the private bucket.
+ * Handles both new rows (file path) and legacy rows (full https:// URL stored before the fix).
+ */
+export const useInstallmentProofUrl = (proofPath: string | null) => {
+  return useQuery({
+    queryKey: ['installment-proof-url', proofPath],
+    queryFn: async () => {
+      if (!proofPath) return null;
+      // Legacy rows: already a full URL — return as-is
+      if (proofPath.startsWith('http')) return proofPath;
+
+      const { data, error } = await supabase.storage
+        .from('installment-proofs')
+        .createSignedUrl(proofPath, 3600); // 1 hour
+      if (error) throw error;
+      return data.signedUrl;
+    },
+    enabled: !!proofPath,
+    staleTime: 1000 * 60 * 50, // refresh before 1h expiry
   });
 };

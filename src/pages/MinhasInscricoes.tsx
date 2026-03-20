@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useRegistrations, Registration } from '@/hooks/useRegistrations';
-import { useInstallments, useUploadInstallmentProof, InstallmentPayment } from '@/hooks/useInstallments';
+import { useInstallments, useUploadInstallmentProof, useInstallmentProofUrl, InstallmentPayment } from '@/hooks/useInstallments';
 import { useEvents, Event } from '@/hooks/useEvents';
 import { useSettings } from '@/hooks/useSettings';
 import { format } from 'date-fns';
@@ -28,6 +28,7 @@ const installmentStatusMap: Record<string, { label: string; icon: typeof Clock; 
 const InstallmentRow = ({ inst, registrationId, pixKey }: { inst: InstallmentPayment; registrationId: string; pixKey: string }) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const uploadProof = useUploadInstallmentProof();
+  const { data: signedProofUrl, isLoading: isProofLoading } = useInstallmentProofUrl(inst.proof_url);
   const [customAmount, setCustomAmount] = useState('');
   const [copied, setCopied] = useState(false);
   const statusInfo = installmentStatusMap[inst.payment_status] || installmentStatusMap.pending;
@@ -117,9 +118,15 @@ const InstallmentRow = ({ inst, registrationId, pixKey }: { inst: InstallmentPay
                 </Button>
               )}
               {inst.proof_url ? (
-                <a href={inst.proof_url} target="_blank" rel="noreferrer">
-                  <Button size="sm" variant="ghost" className="h-8 text-xs">
-                    Ver comprovante
+                <a
+                  href={signedProofUrl ?? undefined}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-disabled={!signedProofUrl || isProofLoading}
+                  onClick={(e) => { if (!signedProofUrl || isProofLoading) e.preventDefault(); }}
+                >
+                  <Button size="sm" variant="ghost" className="h-8 text-xs" disabled={isProofLoading}>
+                    {isProofLoading ? 'Carregando...' : 'Ver comprovante'}
                   </Button>
                 </a>
               ) : (

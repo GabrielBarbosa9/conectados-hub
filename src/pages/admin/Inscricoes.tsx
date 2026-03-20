@@ -17,8 +17,19 @@ import {
 import { Download, Trash2, CheckCircle, ChevronDown, ChevronUp, ExternalLink, XCircle, Search, Users, Clock, CircleDollarSign, UserCheck } from 'lucide-react';
 import { useEvents } from '@/hooks/useEvents';
 import { useRegistrations, useDeleteRegistration, useConfirmPayment } from '@/hooks/useRegistrations';
-import { useInstallments, useConfirmInstallment, type InstallmentPayment } from '@/hooks/useInstallments';
+import { useInstallments, useConfirmInstallment, useInstallmentProofUrl, type InstallmentPayment } from '@/hooks/useInstallments';
 import { format } from 'date-fns';
+
+const InstallmentProofLink = ({ proofPath }: { proofPath: string }) => {
+  const { data: signedUrl, isLoading } = useInstallmentProofUrl(proofPath);
+  if (isLoading) return <span className="text-xs text-muted-foreground">Carregando...</span>;
+  if (!signedUrl) return null;
+  return (
+    <a href={signedUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
+      <ExternalLink className="h-3 w-3" />Comprovante
+    </a>
+  );
+};
 
 const InstallmentsPanel = ({
   registrationId,
@@ -84,9 +95,7 @@ const InstallmentsPanel = ({
               {statusLabel[inst.payment_status] || 'Pendente'}
             </span>
             {inst.proof_url && (
-              <a href={inst.proof_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
-                <ExternalLink className="h-3 w-3" />Comprovante
-              </a>
+              <InstallmentProofLink proofPath={inst.proof_url} />
             )}
             <div className="ml-auto flex gap-1">
               {inst.payment_status !== 'paid' && (
